@@ -40,8 +40,11 @@ This program requires a BEAST-ready XML file, likely created by BEAUti. This scr
 BEAST version 1.8.4. The latest releases are available from the following link: 
 https://github.com/beast-dev/beast-mcmc/releases
 
-The program BSSVS_to_GLM.py is written in Python v3.4.3. The built-in 'xml' and 'math' packages are used. Also required 
-is the 'numpy' package. Documentation and download instructions for 'numpy' can be found at the following link:	
+The program BSSVS_to_GLM.py is written in Python v3.4.3, available from:
+https://www.python.org/downloads/release/python-343/
+
+The built-in 'xml' and 'math' packages are used. Also required is the 'numpy' package. 
+Documentation and download instructions for 'numpy' can be found at the following link:	
 http://docs.scipy.org/doc/numpy-1.10.1/user/install.html
 
 
@@ -136,11 +139,12 @@ Tips
 	
 Citations	
 ---------
-Faria NR, Suchard MA, Rambaut A, Streicker DG, Lemey P. Simultaneously reconstructing 
+(1) Faria NR, Suchard MA, Rambaut A, Streicker DG, Lemey P. Simultaneously reconstructing 
 	viral cross-species transmission history and identifying the underlying 
 	constraints. Philos Trans R Soc Lond B Biol Sci. 2013 Feb 4;368(1614):20120196. 
 	doi: 10.1098/rstb.2012.0196
-Lemey P, Rambaut A, Bedford T, Faria N, Bielejec F, Baele G, Russell CA, Smith DJ, 
+
+(2) Lemey P, Rambaut A, Bedford T, Faria N, Bielejec F, Baele G, Russell CA, Smith DJ, 
 	Pybus OG, Brockmann D, Suchard MA. Unifying viral genetics and human 
 	transportation data to predict the global transmission dynamics of human 
 	influenza H3N2. PLoS Pathog. 2014 Feb 20;10(2):e1003932. 
