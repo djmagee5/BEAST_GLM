@@ -638,13 +638,13 @@ def writeGLMsubModel(singlePreList, data, stoploop, numstates, traitname, preNam
         print("Warning: GLM Design Matrix not of full rank.")
         print("\tPredictors =\t" + str(countedPredictors))
         print('\tRank =\t\t' +str(numpy.linalg.matrix_rank(designMatrix)))
-        print("\tThese data will not execute in BEAST.")
+        print("These data will (likely) not execute in BEAST.")
 
     else:
-        print("Checking rank of GLM Design Matrix.")
+        print("\nChecking rank of GLM Design Matrix.")
         print("\tPredictors =\t" + str(countedPredictors))
         print('\tRank =\t\t' +str(numpy.linalg.matrix_rank(designMatrix)))
-        print("\tThese data look good and will execute in BEAST.")
+        print("These data look good and will execute in BEAST.")
 
     outfile.write('\t\t\t\t</designMatrix>\n')
     outfile.write('\t\t\t</independentVariables>\n')
