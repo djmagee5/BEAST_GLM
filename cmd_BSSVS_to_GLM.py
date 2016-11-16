@@ -1,5 +1,6 @@
-# Working on allowing import of TSV or CSV predictor datafiles (like distances)
+# takes in command line arguments instead of user input prompts
 import sys
+import os
 import numpy
 import math
 import xml.etree.ElementTree as ET
@@ -14,13 +15,13 @@ tb = '\t'
 def readCMDinputs():
     if len(sys.argv) != 5 and len(sys.argv) != 7:
         print("ERROR: Invalid Arguments")
-        print("Usage: ",argv[0],"xmlFileName.xml discreteTraitName -indiv individualFileDirectory")
-        print("       ",argv[0],"xmlFileName.xml discreteTraitName -batch batchFileName")
-        print("       ",argv[0],"xmlFileName.xml discreteTraitName -batch batchFileName -indiv individualFileDirectory")
-        print("       ",argv[0],"xmlFileName.xml discreteTraitName -indiv individualFileDirectory -batch batchFileName")
+        print("Usage: ",sys.argv[0],"xmlFileName.xml discreteTraitName -indiv individualFileDirectory")
+        print("       ",sys.argv[0],"xmlFileName.xml discreteTraitName -batch batchFileName")
+        print("       ",sys.argv[0],"xmlFileName.xml discreteTraitName -batch batchFileName -indiv individualFileDirectory")
+        print("       ",sys.argv[0],"xmlFileName.xml discreteTraitName -indiv individualFileDirectory -batch batchFileName\n")
         return 'ERROR'
     else:
-        return argv[1::]
+        return sys.argv[1::]
 
 # also import the a predictor file as a matrix (single predictor, like distance)
 # these files need to have 
@@ -1046,7 +1047,7 @@ def getPreDataFromBatch(batchFile,batchPreNames,delim,traitName):
     # set 'includeDistance' to False by default
     includeDistance = False
     if (latitude >= 0) and (longitude >= 0):
-        print("Predictors \"" + latName + "\" and \"" + longName + "\" look like coordinates.")
+        print("Predictors \"" + latName + "\" and \"" + longName + "\" in "+batchFile+ " look like coordinates.")
         wantDistance = input("Would you like to create a \"distance\" predictor (y/n)? ").lower()
         while (wantDistance != 'y') and (wantDistance != 'n'):
             wantDistance = input("\tPlease try again. Enter 'y' to create \"Distance\" predictor or 'n' to pass: ").lower()
@@ -1216,128 +1217,132 @@ def main():
     # python scriptName XMLfileName discreteTraitName -batch batchFileName
     # python scriptName XMLfileName discreteTraitName -batch batchFileName -indiv individualFileDirectory
     args = readCMDinputs()
-    userInputFile     = args[0]
-    userTraitName = args[1]
 
-    # if there is a batchFile, get its directory
-    if args[2] == '-batch':
-        batchFilePath = args[3]        
-        if len(args) == 4:
+    if args == 'ERROR':
+        print("Please see \"README.md\" for correct usage of this script.")
+    else:
+        userInputFile = args[0]
+        userTraitName = args[1]
+
+        # if there is a batchFile, get its directory
+        if args[2] == '-batch' and len(args) == 4:
+            batchFilePath = args[3]        
             indivFilesDir = False
-        elif len(args) == 6:
-            indivFilesDir = args[5]   
-    elif args[4] == '-batch':
-        batchFilePath = args[5]
-        indivFilesDir = args[3]
-    else:
-        batchFilePath = False
-        indivFilesDir = args[3]
-      
-    userXMLinput = getXMLinputFile(userInputFile)
-    tree = userXMLinput[0]
-    root = userXMLinput[1]    
-
-    xmlInput = open(userInputFile,'r')
-    
-    inputXMLfilePath = userInputFile
-    outputXMLfilePath = userInputFile[:len(userInputFile)-4] + '_GLMedits.xml'
-
-    # check to see if the user's discrete trait is in the supplied XML
-    foundDiscreteTrait = verifyXMLdiscreteTrait(inputXMLfilePath, userTraitName, root)
-
-    # if the XML doesn't have that trait, quit
-    if foundDiscreteTrait == False:
-        print("ERROR: Discrete trait \""+userTraitName+"\" not found in " + inputXMLfilePath+".")
-
-    # if it does, proceed
-    else:
-        traitName = foundDiscreteTrait
-
-        # get the discrete state names
-        # returns [discreteStateNames, discreteStateNames_raw, bssvs]
-        XMLdiscreteData = getXMLDiscreteStateNames(inputXMLfilePath, tree, root, traitName)
-        XMLdiscreteStateNames = XMLdiscreteData[0]
-        bssvs_specified = XMLdiscreteData[2]
-
-        # get all of the predictor data files from the user
-        # return [singlePredictors,batchPredictorNames,batchFilePath]
-        uploadedPreFiles = getAllPredictorData(traitName, XMLdiscreteStateNames, XMLdiscreteData[1], batchFilePath, indivFilesDir)
-
-        # if there was an error in the uploaded predictor file(s) then print a message and kill the program
-        if uploadedPreFiles == "ERROR":
-            print("New GLM-ready XML file not created. Check your predictor file(s) for the specified error.")
-
+        if args[2] == '-indiv' and len(args) == 4:
+            indivFilesDir = args[3]   
+            batchFilePath = False
+        elif args[2] == '-batch' and len(args) == 6:
+            batchFilePath = args[3]
+            indivFilesDir = args[5]
         else:
-            # only single predictor files were uploaded
-            # returned [singlePreData]
-            if len(uploadedPreFiles) == 1:
-                # add in createGLMXMLhere for just a single predictor file
-                singlePres = uploadedPreFiles[0]
-                createGLM_XML(inputXMLfilePath, outputXMLfilePath, bssvs_specified, [], [], [], len(XMLdiscreteStateNames), False, "distanceMatrix.txt", XMLdiscreteStateNames, traitName, singlePres)
-                print('\nDone. New XML file \"' + outputXMLfilePath + '\" created to model discrete trait \"' + traitName + '\" as a log-linear GLM has been created.')
+            batchFilePath = args[5]
+            indivFilesDir = args[3]
 
+          
+        userXMLinput = getXMLinputFile(userInputFile)
+        tree = userXMLinput[0]
+        root = userXMLinput[1]    
+
+        xmlInput = open(userInputFile,'r')
+        
+        inputXMLfilePath = userInputFile
+        outputXMLfilePath = userInputFile[:len(userInputFile)-4] + '_GLMedits.xml'
+
+        # check to see if the user's discrete trait is in the supplied XML
+        foundDiscreteTrait = verifyXMLdiscreteTrait(inputXMLfilePath, userTraitName, root)
+
+        # if the XML doesn't have that trait, quit
+        if foundDiscreteTrait == False:
+            print("ERROR: Discrete trait \""+userTraitName+"\" not found in " + inputXMLfilePath+".")
+
+        # if it does, proceed
+        else:
+            traitName = foundDiscreteTrait
+
+            # get the discrete state names
+            # returns [discreteStateNames, discreteStateNames_raw, bssvs]
+            XMLdiscreteData = getXMLDiscreteStateNames(inputXMLfilePath, tree, root, traitName)
+            XMLdiscreteStateNames = XMLdiscreteData[0]
+            bssvs_specified = XMLdiscreteData[2]
+
+            # get all of the predictor data files from the user
+            # return [singlePredictors,batchPredictorNames,batchFilePath]
+            uploadedPreFiles = getAllPredictorData(traitName, XMLdiscreteStateNames, XMLdiscreteData[1], batchFilePath, indivFilesDir, inputXMLfilePath)
+
+            # if there was an error in the uploaded predictor file(s) then print a message and kill the program
+            if uploadedPreFiles == "ERROR":
+                print("New GLM-ready XML file not created. Check your predictor file(s) for the specified error.")
 
             else:
-                # a batch file was uploaded (and possibly single predictor files)
-                # returned [singlePredictors,batchPredictorNames,batchPredictorData,batchCoordinates,batchNegPredictors,batchDiscreteStateNames]
-                singlePres          = uploadedPreFiles[0]
-                batchPreNames       = uploadedPreFiles[1]
-                batchPreData        = uploadedPreFiles[2]
-                batchCoords         = uploadedPreFiles[3]
-                batchStateNames     = uploadedPreFiles[4]
-                includeDistance     = uploadedPreFiles[5]
-                predictorDirections = uploadedPreFiles[6]
+                # only single predictor files were uploaded
+                # returned [singlePreData]
+                if len(uploadedPreFiles) == 1:
+                    # add in createGLMXMLhere for just a single predictor file
+                    singlePres = uploadedPreFiles[0]
+                    createGLM_XML(inputXMLfilePath, outputXMLfilePath, bssvs_specified, [], [], [], len(XMLdiscreteStateNames), False, "distanceMatrix.txt", XMLdiscreteStateNames, traitName, singlePres)
+                    print('\nDone. New XML file \"' + outputXMLfilePath + '\" created to model discrete trait \"' + traitName + '\" as a log-linear GLM has been created.')
 
-                newPreNames = predictorDirections[0]
-                preDirections = predictorDirections[1]
-                                 
-                # create new arrays of predictor data for coordinates (if desired) and other predictors
-                batchPredictorDataSorted = [] 
-                batchCoordsSorted = []
 
-                # check to see if discrete states are in the correct order in the GLM data
-                # sort them into the same order as the XML file if they are not
-                for k in range(len(XMLdiscreteStateNames)):
-                    XMLstate = XMLdiscreteStateNames[k]
-                    for j in range(len(batchStateNames)):
-                        if batchStateNames[j] == XMLstate:
-                            batchPredictorDataSorted.append(batchPreData[j])
-                            if includeDistance:
-                                batchCoordsSorted.append(batchCoords[j])
+                else:
+                    # a batch file was uploaded (and possibly single predictor files)
+                    # returned [singlePredictors,batchPredictorNames,batchPredictorData,batchCoordinates,batchNegPredictors,batchDiscreteStateNames]
+                    singlePres          = uploadedPreFiles[0]
+                    batchPreNames       = uploadedPreFiles[1]
+                    batchPreData        = uploadedPreFiles[2]
+                    batchCoords         = uploadedPreFiles[3]
+                    batchStateNames     = uploadedPreFiles[4]
+                    includeDistance     = uploadedPreFiles[5]
+                    predictorDirections = uploadedPreFiles[6]
 
-                # if the user wanted distance...
-                if includeDistance:
-                    idx = newPreNames.index('Distance')
+                    newPreNames = predictorDirections[0]
+                    preDirections = predictorDirections[1]
+                                     
+                    # create new arrays of predictor data for coordinates (if desired) and other predictors
+                    batchPredictorDataSorted = [] 
+                    batchCoordsSorted = []
 
-                    # if the name 'distance' exists in the predictor list and it was not maked for removal
-                    # during the directionality editing, create a matrix of great circle distances "distanceMatrix.txt"
-                    if idx >= 0 and preDirections[idx] != '** REMOVE **':
-                        calculateDistances(batchCoordsSorted, "distanceMatrix.txt")
-                        newPreNames.pop(idx)
+                    # check to see if discrete states are in the correct order in the GLM data
+                    # sort them into the same order as the XML file if they are not
+                    for k in range(len(XMLdiscreteStateNames)):
+                        XMLstate = XMLdiscreteStateNames[k]
+                        for j in range(len(batchStateNames)):
+                            if batchStateNames[j] == XMLstate:
+                                batchPredictorDataSorted.append(batchPreData[j])
+                                if includeDistance:
+                                    batchCoordsSorted.append(batchCoords[j])
+
+                    # if the user wanted distance...
+                    if includeDistance:
+                        idx = newPreNames.index('Distance')
+
+                        # if the name 'distance' exists in the predictor list and it was not maked for removal
+                        # during the directionality editing, create a matrix of great circle distances "distanceMatrix.txt"
+                        if idx >= 0 and preDirections[idx] != '** REMOVE **':
+                            calculateDistances(batchCoordsSorted, "distanceMatrix.txt")
+                            newPreNames.pop(idx)
+                            preDirections.pop(idx)
+
+                        # if they elected to remove it during directional editing, set the boolean false
+                        else:
+                            includeDistance = False
+
+                    predictorsToStandardize = 0
+                    predictorsToRemove = []
+                    for j in range(len(batchPreNames)):
+                        if preDirections[j] == '** REMOVE **':
+                            predictorsToRemove.append(batchPreNames[j])
+                        else:
+                            predictorsToStandardize += 1
+
+                    for j in range(len(predictorsToRemove)):
+                        idx = batchPreNames.index(predictorsToRemove[j])
+                        batchPreNames.pop(idx)
                         preDirections.pop(idx)
+                        for k in range(len(batchPredictorDataSorted)):
+                            batchPredictorDataSorted[k].pop(idx)
 
-                    # if they elected to remove it during directional editing, set the boolean false
-                    else:
-                        includeDistance = False
-
-                predictorsToStandardize = 0
-                predictorsToRemove = []
-                for j in range(len(batchPreNames)):
-                    if preDirections[j] == '** REMOVE **':
-                        predictorsToRemove.append(batchPreNames[j])
-                    else:
-                        predictorsToStandardize += 1
-
-                for j in range(len(predictorsToRemove)):
-                    idx = batchPreNames.index(predictorsToRemove[j])
-                    batchPreNames.pop(idx)
-                    preDirections.pop(idx)
-                    for k in range(len(batchPredictorDataSorted)):
-                        batchPredictorDataSorted[k].pop(idx)
-
-                createGLM_XML(inputXMLfilePath, outputXMLfilePath, bssvs_specified, batchPredictorDataSorted, batchPreNames, preDirections, len(XMLdiscreteStateNames), includeDistance, "distanceMatrix.txt", XMLdiscreteStateNames, traitName, singlePres)
-                print('\nDone. New XML file \"' + outputXMLfilePath + '\" created to model discrete trait \"' + traitName + '\" as a log-linear GLM has been created.')
-    
+                    createGLM_XML(inputXMLfilePath, outputXMLfilePath, bssvs_specified, batchPredictorDataSorted, batchPreNames, preDirections, len(XMLdiscreteStateNames), includeDistance, "distanceMatrix.txt", XMLdiscreteStateNames, traitName, singlePres)
+                    print('\nDone. New XML file \"' + outputXMLfilePath + '\" created to model discrete trait \"' + traitName + '\" as a log-linear GLM has been created.')
 
 
 if __name__ == "__main__":
