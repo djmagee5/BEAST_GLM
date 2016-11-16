@@ -22,16 +22,18 @@ https://perswww.kuleuven.be/~u0036765/crashcourse/BEAST_files/discretePhylogeogr
 
 Program Summary
 ------------------
-The program takes in a BEAST-ready XML file that models some discrete trait, and also file(s) of
-predictor data to model that discrete trait. The program then converts the XML file to model the discrete trait as a 
+The program takes in a BEAST-ready XML file that models some discrete trait, and also file(s) (batch file and/or individual file(s)) 
+of predictor data to model that discrete trait. The program then converts the XML file to model the discrete trait as a 
 log-linear GLM of the specified predictors. It will allow users to visualize the list of predictors and decide 
 whether they should be modeled from both <trait> of origin and <trait> of destination (by default), or one particular direction.
-If two of the predictors in the predictor input file appear to be coordinates, the program will ask if a 
+If two of the predictors in a batch predictor input file appear to be coordinates, the program will ask if a 
 "distance" predictor is desired. If not, the predictors will be used in raw form. Individual predictors may also be uploaded
 as a square matrix of the discrete states, perhaps in cases where exact values are known for each transition and the matrix
-is irreversible. BEAST will not execute XML files with the GLM specification if the predictor design matrix is not of full rank. 
-Therefore, this program  will check the rank of the GLM design matrix to ensure that it is of full rank. 
-This value will be echoed to the user along with a message of whether or not the predictor data will (likely) cause a BEAST crash.
+is asymmetric. Predictor files of this type must be contained in a single directory. The program will process each of the files
+in the directory individually. All predictors (whether from the batch file or individual files) will be added to a 'design matrix'.
+BEAST will not execute XML files with the GLM specification if the design matrix is not of full rank. Therefore, this program 
+will check the rank of the GLM design matrix to ensure that it is of full rank. This value will be echoed to the user along with a 
+message of whether or not the predictor data will (likely) cause a BEAST crash.
 
 
 Program Requirements
@@ -121,6 +123,23 @@ Furthermore, all logfiles, treefiles, operator analysis files, marginal likeliho
 XML input file will be renamed accordingly (e.g. bat_rabies.log --> bat_rabies_GLMedits_state.log). This allows the original XML
 file and the GLM file to both be executed without conflicting logfile names.
 
+
+Example
+-------
+Contained in the package "WNV_Example" is a BEAST XML file for West Nile Virus that models "location" as a discrete trait.
+Also included is a batch predictor file "fakeBatchFile.txt" and a directory "fakeSinglePredictorDir" that contains five single
+predictor files. These files should provide examples of proper formatting of your data files. The program can create a new XML file
+for the discrete "location" trait from any of the following four arguments:
+
+
+1. $ python create_glm_xml.py wnvtest.xml location single .\fakeSinglePredictorDir
+2. $ python create_glm_xml.py wnvtest.xml location single .\fakeSinglePredictorDir batch fakeBatchFile
+3. $ python create_glm_xml.py wnvtest.xml location batch fakeBatchFile single .\fakeSinglePredictorDir
+4. $ python create_glm_xml.py wnvtest.xml location batch fakeBatchFile
+
+Here, (1) uses only the four single predictors in "fakeSinglePredictorDir".
+      (2)/(3) are functionally equivalent and use both the single predictors in "fakeSinglePredictorDir" and the batch predictor file "fakeBatchFile.txt".
+      (4) uses only the batch predictor file "fakeBatchFile.txt".
 
 Support
 -------
