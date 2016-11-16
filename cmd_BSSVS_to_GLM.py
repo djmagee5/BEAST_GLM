@@ -13,12 +13,13 @@ tb = '\t'
 # python scriptName XMLfileName discreteTraitName -batch batchFileName
 # python scriptName XMLfileName discreteTraitName -batch batchFileName -indiv individualFileDirectory
 def readCMDinputs():
+    print()
     if len(sys.argv) != 5 and len(sys.argv) != 7:
         print("ERROR: Invalid Arguments")
-        print("Usage: ",sys.argv[0],"xmlFileName.xml discreteTraitName -indiv individualFileDirectory")
-        print("       ",sys.argv[0],"xmlFileName.xml discreteTraitName -batch batchFileName")
-        print("       ",sys.argv[0],"xmlFileName.xml discreteTraitName -batch batchFileName -indiv individualFileDirectory")
-        print("       ",sys.argv[0],"xmlFileName.xml discreteTraitName -indiv individualFileDirectory -batch batchFileName\n")
+        print("\tUsage: ",sys.argv[0],"xmlFileName discreteTraitName -indiv individualFileDirectory")
+        print("\t       ",sys.argv[0],"xmlFileName discreteTraitName -batch batchFileName")
+        print("\t       ",sys.argv[0],"xmlFileName discreteTraitName -batch batchFileName -indiv individualFileDirectory")
+        print("\t       ",sys.argv[0],"xmlFileName discreteTraitName -indiv individualFileDirectory -batch batchFileName\n")
         return 'ERROR'
     else:
         return sys.argv[1::]
@@ -1228,7 +1229,7 @@ def main():
         if args[2] == '-batch' and len(args) == 4:
             batchFilePath = args[3]        
             indivFilesDir = False
-        if args[2] == '-indiv' and len(args) == 4:
+        elif args[2] == '-indiv' and len(args) == 4:
             indivFilesDir = args[3]   
             batchFilePath = False
         elif args[2] == '-batch' and len(args) == 6:
