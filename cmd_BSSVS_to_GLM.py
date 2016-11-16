@@ -163,10 +163,22 @@ def processGLMHeader(file,sep):
 # prints them so the user can verify correctness and/or make changes
 def printPredictorList(preList, directions):
     print('Current list of predictors to include from batch file:\n')
-    print("\tNum  Predictor          Direction")
-    print("\t---  ---------          ---------")
+##    print("\tNum  Predictor          Direction")
+##    print("\t---  ---------          ---------")
+    maxPreLength = 0
+    for j in preList:
+        if len(j) > maxPreLength:
+            maxPreLength=len(j)
+    dashStr='---------'
+    for j in range(len(dashStr)-8):
+        dashStr+='-'
+    print("\t"+format("Num","<5")+format("Predictor","<"+str(maxPreLength))+"  Direction")
+    print('\t---  ---------'+dashStr+'  ---------')
+
+
+    
     for j in range(len(preList)):
-        print('\t' + format('('+str(j)+')',"<5") + format(preList[j],"<15") + '\t' + directions[j])
+        print('\t' + format('('+str(j)+')',"<5") + format(preList[j],"<"+str(maxPreLength)) + '  ' + directions[j])
     print()
 
 
