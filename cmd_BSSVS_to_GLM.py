@@ -699,9 +699,10 @@ def addBinomialLikelihood(traitname, numpredictors, outfile):
     outfile.write('\t\t\t\t<!-- End ELM Edit for Binomial Likelihood -->\n\n')
 
 # add the logfile for the glm predictor to obtain the mean, variance, etc. of the coefficient indicators and beta coefficients
-def addGLMfileLog(outfile, traitname, logging):
+def addGLMfileLog(outfile, traitname, logging, inputXMLfile):
     outfile.write('\n\t\t<!-- GLM Edit: Add GLM File Log -->\n')
-    outfile.write('\t\t<log id=\"glmFileLog\" ' + logging + '\" fileName=\"glm_logfile.' + traitname + '.model.log\">\n')
+    #outfile.write('\t\t<log id=\"glmFileLog\" ' + logging + '\" fileName=\"glm_logfile.' + traitname + '.model.log\">\n')
+    outfile.write('\t\t<log id=\"glmFileLog\" ' + logging + '\" fileName=\"' + inputXMLfile[:len(inputXMLfile)-4]+'_GLMedits_'+ traitname + '.model.log\">\n')
     outfile.write('\t\t\t<parameter idref=\"coefIndicator\"/>\n')
     outfile.write('\t\t\t<parameter idref=\"glmCoefficients\"/>\n')
     outfile.write('\t\t\t<productStatistic idref=\"coefficientsTimesIndicators\"/>\n')
@@ -994,7 +995,7 @@ def createGLM_XML(readFromXML, writeToXML, BSSVS_specified, dataForPredictors, n
                 
                 XMLoutput.write('\t\t-->\n\t\t<!--End GLM Edit: Remove BSSVS file log-->\n\n')
 
-                addGLMfileLog(XMLoutput, discreteTraitName, logEvery)
+                addGLMfileLog(XMLoutput, discreteTraitName, logEvery, readFromXML)
 
                 removeBSSVSlog = True
 
