@@ -1,8 +1,8 @@
-*************************
-*************************
-**   BSSVS_to_GLM.py   **
-*************************
-*************************
+***************************
+***************************
+**   create_glm_xml.py   **
+***************************
+***************************
 
 Prepared by: 	Daniel Magee
 		Arizona State University
@@ -48,13 +48,27 @@ Documentation and download instructions for 'numpy' can be found at the followin
 http://docs.scipy.org/doc/numpy-1.10.1/user/install.html
 
 
-Program Inputs
---------------
-1. A BEAST-ready XML document that specifies some discrete trait.
-2. The name of the discrete trait as specified in the XML file (case insensitive).
-3. Predictor data file(s). The file(s) MUST be comma delimited (.csv) or tab delimited (.txt).
-   Two types of files are permitted:
+Command Line Execution
+----------------------
+General use:
+	$ python create_glm_xml.py <xmlFilePath> <discreteTraitName> single <singlePredictorDir> batch <batchFilePath>
 
+<xmlFilePath>			A BEAST-ready XML document that specifies some discrete trait.
+<discreteTraitName>		The name of the discrete trait from the XML file that you wish to transform in to a GLM.
+single				Indicates that you have at least one individual predictor matrix file.
+<singlePredictorDirectory>	Name of directory that contains ONLY individual predictor matrices.
+batch				Indicates that you have a file of batch predictors.
+<batchFilePath>			The name of the batch predictor file.
+
+You may specify that only individual predictor files used, only a batch file is used, or both are used. It is REQUIRED that if you wish
+to upload individual predictor files that they are all contained in a single directory. Each file in this directory must be an individual
+predictor file.
+
+Predictor Data File Requirements
+--------------------------------
+The predictor file(s) MUST be comma delimited (.csv) or tab delimited (.txt).
+
+	BATCH FILE
 	(i)  A batch file of predictor data for the discrete trait that you wish to modify to the GLM specification.
    	     These are the requirements for this batch file of predictor data:
 
@@ -63,7 +77,7 @@ Program Inputs
 		3. The first value in all remaining lines must be the names of the discrete states in the XML file. 
 		   The order of the states does not matter as the program will sort them according to the order specified in the XML file.
 		4. The remaining values in each line MUST be the values of the predictor in the column for the line's discrete state.
-		5. Only one batch file is allowed.
+		5. A predictor will be created for each predictor name in the first row.
 	
 			BATCH EXAMPLE: "batchPredictorData.csv"
 				state,temperature,precipitation,latitude,population_density,vaccination_rate
@@ -72,7 +86,8 @@ Program Inputs
 				state3,33.1,30.0,19.0,433.1,0.55
 				state4,27.4,10.9,14.3,356.4,0.51
 
-	(ii) An individual file of predictor data for a single predictor. You may upload multiple files of this type.
+	INDIVDIUAL FILE
+	(ii) An individual file of predictor data for a single predictor. Each of these files must be in a single directory <singlePredictorDir>
 	     These are the requirements for the files of individual predictor data:
 	     
 	     	1. The first value in the first line should be the name of the predictor.
@@ -89,11 +104,10 @@ Program Inputs
 				state3	8.8	6.4	0	7.9
 				state4	27.4	10.9	14.3	0
 
-4. The program will check for any invalid values (i.e. data that are not float-able) and inform you where incorrect
-   points in the file are (line/column). 
-5. ***IMPORTANT***
-   The program WILL AUTOMATICALLY LOG TRANSFORM YOUR DATA (natural log). There is no need to do this prior to running the program.
-   Any predictor data that you upload that has already been log-tranformed will thus be incorrect in the new XML file, biasing your results. 
+The program will check for any invalid values (i.e. data that are not float-able) and inform you where incorrect
+points in the file are (line/column). The program WILL AUTOMATICALLY LOG TRANSFORM YOUR DATA (natural log). 
+There is no need to do this prior to running the program. Any predictor data that you upload that has already been log-tranformed 
+will thus be incorrect in the new XML file.
 
 Program Output
 --------------
@@ -126,12 +140,12 @@ Tips
    	"distance" predictor is desired. The great circle distance will be calculated for all coordinates.
    If a "distance" predictor is not desired, ensure that your coordinate data (e.g. latitude) is positive.
    Relative coordinates may be appropriate in this case.
-4. Remember, you may also upload an individual predictor file (like distance) directly.
+4. Remember, you may also upload an individual predictor file (like distance) directly from the <singlePredictorDir>.
 5. Ensure that you know which direction that you want each predictor to be modeled. By default, all predictors
-   will be set to model from both <trait> of origin and <trait> of destination. The user will be prompted to 
+   will be set to model from both <discreteTraitName> of origin and <discreteTraitName> of destination. The user will be prompted to 
    customize the list until they are satisfied with the direction of all predictors. If a predictor is no longer
    desired, it can be removed from the list.
-6. The program is generally NOT case sensitive, except in the case of the input XML and predictor data files.
+6. The program is generally NOT case sensitive.
 7. The names of the discrete states in the predictor data file MUST match the names of the discrete states
    in the input XML file that you wish to model as a GLM.
 8. Feel free to contact me at djmagee@asu.edu with any questions on the program requirements, inputs, or bugs.

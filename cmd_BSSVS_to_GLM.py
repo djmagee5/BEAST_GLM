@@ -8,18 +8,37 @@ import xml.etree.ElementTree as ET
 tb = '\t'
 
 # possible inputs
-# python scriptName XMLfileName discreteTraitName -indiv individualFileDirectory
-# python scriptName XMLfileName discreteTraitName -indiv individualFileDirectory -batch batchFileName
-# python scriptName XMLfileName discreteTraitName -batch batchFileName
-# python scriptName XMLfileName discreteTraitName -batch batchFileName -indiv individualFileDirectory
+# python scriptName XMLfileName discreteTraitName single individualFileDirectory
+# python scriptName XMLfileName discreteTraitName single individualFileDirectory -batch batchFileName
+# python scriptName XMLfileName discreteTraitName batch batchFileName
+# python scriptName XMLfileName discreteTraitName batch batchFileName single individualFileDirectory
+
+def printUsageError(scriptName):
+    print("ERROR: Invalid Arguments")
+    print("\tUsage: ",sys.argv[0],"xmlFileName discreteTraitName single individualFileDirectory")
+    print("\t       ",sys.argv[0],"xmlFileName discreteTraitName batch batchFileName")
+    print("\t       ",sys.argv[0],"xmlFileName discreteTraitName batch batchFileName indiv individualFileDirectory")
+    print("\t       ",sys.argv[0],"xmlFileName discreteTraitName single individualFileDirectory batch batchFileName\n")
+
 def readCMDinputs():
+    usageError = False
     print()
     if len(sys.argv) != 5 and len(sys.argv) != 7:
-        print("ERROR: Invalid Arguments")
-        print("\tUsage: ",sys.argv[0],"xmlFileName discreteTraitName -indiv individualFileDirectory")
-        print("\t       ",sys.argv[0],"xmlFileName discreteTraitName -batch batchFileName")
-        print("\t       ",sys.argv[0],"xmlFileName discreteTraitName -batch batchFileName -indiv individualFileDirectory")
-        print("\t       ",sys.argv[0],"xmlFileName discreteTraitName -indiv individualFileDirectory -batch batchFileName\n")
+        printUsageError(sys.argv[0])
+        usageError = True
+    else:
+        if len(sys.argv) == 5:
+            if sys.argv[3] != 'single' and sys.argv[3] != 'batch':
+                printUsageError(sys.argv[0])
+                usageError = True
+        else:
+            if (sys.argv[3] == 'single' and sys.argv[5] == 'batch') or (sys.argv[5] == 'single' and sys.argv[3] == 'batch'):
+                pass
+            else:
+                printUsageError(sys.argv[0])
+                usageError = True
+                
+    if usageError:
         return 'ERROR'
     else:
         return sys.argv[1::]
@@ -173,7 +192,7 @@ def verifyPredictorList(currentPredictorList):
             while nextStep not in predictorNumbers:
                 nextStep = input("Invalid selection. Enter predictor that you want to remove/modify from the above list: ")
             if predictorNames[int(nextStep)] == 'Distance':
-                if [int(nextStep)] == 'N/A':
+                if predictorDirs[int(nextStep)] == 'N/A':
                     print("\nDistance will be removed.")
                     predictorDirs[int(nextStep)] = '** REMOVE **'
                 else:
@@ -185,13 +204,15 @@ def verifyPredictorList(currentPredictorList):
                     rem_mod = input("Invalid selection. Enter (1) to remove \"" + predictorNames[int(nextStep)] + "\" or (2) to change its direction (1/2): ").lower()
                     
                 if rem_mod == '2':
-                    opt = input("Enter (1) to select origin or (2) to select destination (1/2): ")
-                    while opt != '1' and opt != '2':
-                        opt = input("Invalid selection. Enter (1) to select origin or (2) to select destination (1/2): ")
+                    opt = input("Enter (1) to select 'origin', (2) to select 'destination', or (3) to select 'both': ")
+                    while opt != '1' and opt != '2' and opt != '3':
+                        opt = input("Invalid selection. Enter (1) to select 'origin', (2) to select 'destination', or (3) to select 'both': ")
                     if opt == '1':
                         predictorDirs[int(nextStep)] = 'Origin'
-                    else:
+                    elif opt == '2':
                         predictorDirs[int(nextStep)] = 'Destination'
+                    else:
+                        predictorDirs[int(nextStep)] = 'Both'
                 else:
                     predictorDirs[int(nextStep)] = '** REMOVE **'
 
@@ -250,7 +271,7 @@ def getGLMdata(file, sep, traitname, latindex, longindex, rawLat, rawLong, getCo
    
     data = []
     coords = []
-
+    foundInvalid=False
     lineCount = -1
     for line in infile:
         lineCount +=1
@@ -268,13 +289,22 @@ def getGLMdata(file, sep, traitname, latindex, longindex, rawLat, rawLong, getCo
                                 pass
                             else:
                                 nums.append(str(numpy.log(float(tup[k].rstrip()))))
+                              
                         elif (k == longidx):
                             if (rawLong == 'n'):
                                 pass
                             else:
                                 nums.append(str(numpy.log(float(tup[k].rstrip()))))
+                            
                         else:
                             nums.append(str(numpy.log(float(tup[k].rstrip()))))
+                            if 'nan' == str(numpy.log(float(tup[k].rstrip()))):
+                                if foundInvalid:
+                                    pass
+                                else:
+                                    print("Invalid data point(s) in predictor file.")
+                                    foundInvalid = True
+                                print("\t Line: " + str(lineCount+1) + tb + 'Column: ' + str(k+1) + tb + "Value: " + tup[k].rstrip()) 
                     data.append(nums)
                     coords.append([float(tup[latidx].rstrip()),float(tup[longidx].rstrip())])
                 except:
@@ -285,6 +315,13 @@ def getGLMdata(file, sep, traitname, latindex, longindex, rawLat, rawLong, getCo
                 try:
                     for k in range(1,len(tup)):
                         nums.append(str(numpy.log(float(tup[k].rstrip()))))
+                        if 'nan' == str(numpy.log(float(tup[k].rstrip()))):
+                            if foundInvalid:
+                                pass
+                            else:
+                                print("Invalid data point in predictor file.")
+                                foundInvalid=True
+                            print("\t Line: " + str(lineCount+1) + tb + 'Column: ' + str(k+1) + tb + "Value: " + tup[k].rstrip()) 
                     data.append(nums)
                 except:
                     print("Invalid data point in predictor file.")
@@ -1226,19 +1263,18 @@ def main():
         userTraitName = args[1]
 
         # if there is a batchFile, get its directory
-        if args[2] == '-batch' and len(args) == 4:
+        if args[2] == 'batch' and len(args) == 4:
             batchFilePath = args[3]        
             indivFilesDir = False
-        elif args[2] == '-indiv' and len(args) == 4:
+        elif args[2] == 'single' and len(args) == 4:
             indivFilesDir = args[3]   
             batchFilePath = False
-        elif args[2] == '-batch' and len(args) == 6:
+        elif args[2] == 'batch' and len(args) == 6:
             batchFilePath = args[3]
             indivFilesDir = args[5]
-        else:
+        elif args[2] == 'single' and len(args) == 6:
             batchFilePath = args[5]
             indivFilesDir = args[3]
-
           
         userXMLinput = getXMLinputFile(userInputFile)
         tree = userXMLinput[0]
