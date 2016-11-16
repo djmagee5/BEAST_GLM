@@ -9,7 +9,7 @@ Prepared by: 	Daniel Magee
 		Department of Biomedical Informatics
 		djmagee@asu.edu
 		
-Last Updated: 	10 November 2016
+Last Updated: 	16 November 2016
 
 This document describes the usage of the Python 3.4.3 script "BSSVS_to_GLM.py".
 The general use of the script is to identify a discrete trait contained within a 
