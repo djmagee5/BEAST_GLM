@@ -45,7 +45,7 @@ def readCMDinputs():
 
 # also import the a predictor file as a matrix (single predictor, like distance)
 # these files need to have 
-def importPredictorMatrix(file, sep, xmlDiscreteStates):
+def importPredictorMatrix(file, sep, xmlDiscreteStates):  
     singlePreFile = open(file,'r')
     count = 0
     statesRow = []
@@ -1221,10 +1221,10 @@ def getAllPredictorData(discreteTraitName,XMLdiscreteStates,XMLdiscreteStatesRaw
                             for k in range(len(batchPredictorData)):
                                 batchPredictorData[k].pop(idx)                            
 
-                        print("\nBatch file contains the following predictor(s) with negative data values:")
+                        print("\nBatch file contains the following predictor(s) with negative data values that will not be included in the new XML:")
                         for j in negativeDataPredictorNames:
                             print('\t'+j)
-                        print("The listed predictor(s) will not be included in the new GLM XML file.\n")
+                        print()
                         preDirs = getOriginDestination(batchPredictorNames, batchPredictorData, distanceBoolean, discreteTraitName)
                         gotBatchData = True
 
@@ -1233,8 +1233,8 @@ def getAllPredictorData(discreteTraitName,XMLdiscreteStates,XMLdiscreteStatesRaw
         pass
     else:
         for filename in os.listdir(indivPreDir):
-            delim = getPredictorInputFileDelim(filename)
-            singlePre = importPredictorMatrix(filename, delim, XMLdiscreteStates)
+            delim = getPredictorInputFileDelim(indivPreDir+'\\'+filename)
+            singlePre = importPredictorMatrix(indivPreDir+'\\'+filename, delim, XMLdiscreteStates)
             if singlePre == 'ERROR':
                 predictorFileError = True
                 break
@@ -1267,7 +1267,7 @@ def main():
             batchFilePath = args[3]        
             indivFilesDir = False
         elif args[2] == 'single' and len(args) == 4:
-            indivFilesDir = args[3]   
+            indivFilesDir = args[3]
             batchFilePath = False
         elif args[2] == 'batch' and len(args) == 6:
             batchFilePath = args[3]
