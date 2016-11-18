@@ -169,11 +169,11 @@ def printPredictorList(preList, directions):
     for j in preList:
         if len(j) > maxPreLength:
             maxPreLength=len(j)
-    dashStr='---------'
-    for j in range(len(dashStr)-8):
+    dashStr=''
+    for j in range(maxPreLength):
         dashStr+='-'
     print("\t"+format("Num","<5")+format("Predictor","<"+str(maxPreLength))+"  Direction")
-    print('\t---  ---------'+dashStr+'  ---------')
+    print('\t---  '+dashStr+'  ---------\n')
 
 
     
