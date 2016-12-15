@@ -1246,8 +1246,8 @@ def getAllPredictorData(discreteTraitName,XMLdiscreteStates,XMLdiscreteStatesRaw
         pass
     else:
         for filename in os.listdir(indivPreDir):
-            delim = getPredictorInputFileDelim(indivPreDir+'//'+filename)
-            singlePre = importPredictorMatrix(indivPreDir+'//'+filename, delim, XMLdiscreteStates)
+            delim = getPredictorInputFileDelim(indivPreDir+'/'+filename)
+            singlePre = importPredictorMatrix(indivPreDir+'/'+filename, delim, XMLdiscreteStates)
             if singlePre == 'ERROR':
                 predictorFileError = True
                 break
