@@ -700,9 +700,22 @@ def addBinomialLikelihood(traitname, numpredictors, outfile):
 
 # add the logfile for the glm predictor to obtain the mean, variance, etc. of the coefficient indicators and beta coefficients
 def addGLMfileLog(outfile, traitname, logging, inputXMLfile):
+
+    # get the file name and exclude the path, if applicable
+    if inputXMLfile.find('\\') >= 0:
+        tup = inputXMLfile.split('\\')
+        writeFileName = tup[len(tup)-1]
+    elif inputXMLfile.find('/') >= 0:
+        tup = inputXMLfile.split('/')
+        writeFileName = tup[len(tup)-1]
+    else:
+        writeFileName = inputXMLfile
+    
+    
     outfile.write('\n\t\t<!-- GLM Edit: Add GLM File Log -->\n')
     #outfile.write('\t\t<log id=\"glmFileLog\" ' + logging + '\" fileName=\"glm_logfile.' + traitname + '.model.log\">\n')
-    outfile.write('\t\t<log id=\"glmFileLog\" ' + logging + '\" fileName=\"' + inputXMLfile[:len(inputXMLfile)-4]+'_GLMedits_'+ traitname + '.model.log\">\n')
+##    outfile.write('\t\t<log id=\"glmFileLog\" ' + logging + '\" fileName=\"' + inputXMLfile[:len(inputXMLfile)-4]+'_GLMedits_'+ traitname + '.model.log\">\n')
+    outfile.write('\t\t<log id=\"glmFileLog\" ' + logging + '\" fileName=\"' + writeFileName[:len(writeFileName)-4]+'_GLMedits_'+ traitname + '.model.log\">\n')
     outfile.write('\t\t\t<parameter idref=\"coefIndicator\"/>\n')
     outfile.write('\t\t\t<parameter idref=\"glmCoefficients\"/>\n')
     outfile.write('\t\t\t<productStatistic idref=\"coefficientsTimesIndicators\"/>\n')
