@@ -385,7 +385,7 @@ def getXMLDiscreteStateNames(filename, treename, rootname, glmTraitName):
     file = open(filename,'r')
     foundGLMtraitName = False
     foundBitFlip = False
-    foundPoisson = False
+    foundNonZeroRates = False
     discreteStateNames = []
     discreteStateNames_raw = []
 
@@ -424,23 +424,24 @@ def getXMLDiscreteStateNames(filename, treename, rootname, glmTraitName):
                     for posteriorChild in subchild:
                         if posteriorChild.tag == 'prior':
                               for priorChild in posteriorChild:
-                                if priorChild.tag == 'poissonPrior':
-                                    for poissonChild in priorChild:
-                                        attribute = str(poissonChild.attrib)
+                                if priorChild.tag.find('Prior'):
+                                    for bssvsChild in priorChild:
+                                        attribute = str(bssvsChild.attrib)
                                         attrib = attribute[attribute.find(' \'')+2:attribute.find('.nonZeroRates')]
                                         if attrib == newglmTraitName:
-                                            foundPoisson = True
+                                            foundNonZeroRates = True
+                                            nonZeroPriorName = priorChild.tag
     file.close()
         
-    # if there is a bitflip operator and poisson prior for the specified discrete trait
+    # if there is a bitflip operator and nonzerorates prior for the specified discrete trait
     # then BSSVS has been specified. mark the boolean as 'true'. otherwise, false.
-    if foundPoisson and foundBitFlip:
+    if foundNonZeroRates and foundBitFlip:
         bssvs = True
     else:
         bssvs = False
 
     if foundGLMtraitName:
-        return [discreteStateNames, discreteStateNames_raw, bssvs]
+        return [discreteStateNames, discreteStateNames_raw, [bssvs,nonZeroPriorName]]
     else:
         return "noGLMtraitFound"
     
@@ -762,13 +763,14 @@ def createGLM_XML(readFromXML, writeToXML, BSSVS_specified, dataForPredictors, n
     replaceGeneralSubModel = False
     commentOutScaleOp      = False
 
-    if BSSVS_specified:
+    if BSSVS_specified[0]:
         commentOutBitFlipOp    = False
-        commentOutPoissonPrior = False
+        commentOutNonZeroRatesPrior = False
         removeLogNonZeroRates  = False
+        nonZeroPriorName = BSSVS_specified[1]
     else:
         commentOutBitFlipOp    = True
-        commentOutPoissonPrior = True
+        commentOutNonZeroRatesPrior = True
         removeLogNonZeroRates  = True
 
     commentOutUniformCachedPriors = False
@@ -878,26 +880,26 @@ def createGLM_XML(readFromXML, writeToXML, BSSVS_specified, dataForPredictors, n
             else:
                 XMLoutput.write(line)
                 
-        elif commentOutPoissonPrior == False:
-            if (line.find('<poissonPrior') >= 0):
+        elif commentOutNonZeroRatesPrior == False:
+            if (line.find(nonZeroPriorName) >= 0):
                 nextLine = XMLinput.readline()
                 if nextLine.find(discreteTraitName + '.nonZeroRates') >= 0:
                     
-                    XMLoutput.write('\n\t\t\t\t<!-- GLM Edit: Remove Poisson Prior for BSSVS of ' + discreteTraitName + ' -->\n')
+                    XMLoutput.write('\n\t\t\t\t<!-- GLM Edit: Remove NonZeroRates Prior for BSSVS of ' + discreteTraitName + ' -->\n')
                     XMLoutput.write('\t\t\t\t<!--\n')
                     XMLoutput.write(line)
                     XMLoutput.write(nextLine)
 
                     nextLine = XMLinput.readline()
-                    while nextLine.find('</poissonPrior>') < 0:
+                    while nextLine.find('</'+nonZeroPriorName+'>') < 0:
                             XMLoutput.write(nextLine)
                             nextLine = XMLinput.readline()
                     XMLoutput.write(nextLine)
                     XMLoutput.write('\t\t\t\t-->\n')
-                    XMLoutput.write('\t\t\t\t<!-- END GLM Edit: Remove Poisson Prior for BSSVS of ' + discreteTraitName + ' -->\n')
+                    XMLoutput.write('\t\t\t\t<!-- END GLM Edit: Remove NonZeroRates Prior for BSSVS of ' + discreteTraitName + ' -->\n')
 
                     addBinomialLikelihood(discreteTraitName, totalNumberOfPredictors, XMLoutput)
-                    commentOutPoissonPrior = True
+                    commentOutNonZeroRatesPrior = True
                     
                 else:
                     XMLoutput.write(line)
