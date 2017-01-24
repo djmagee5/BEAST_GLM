@@ -361,6 +361,7 @@ def verifyXMLdiscreteTrait(filename, userTraitName, rootname):
         # get the names of the discrete states for the specified discrete trait
         if child.tag == 'generalDataType':
             attribute = str(child.attrib)
+            print(attribute)
             attrib = attribute[attribute.find(' \'')+2:attribute.find('.dataType')]
             if attrib.lower() == userTraitName:
                 if attrib != userTraitName:
@@ -800,27 +801,37 @@ def createGLM_XML(readFromXML, writeToXML, BSSVS_specified, dataForPredictors, n
 
                 XMLoutput.write('\n\t<!-- GLM EDIT: Swap generalSubstitutionModel with glmSubstitutionModel -->\n')
                 XMLoutput.write('\t<!--\n')
-                XMLoutput.write(line)
-                nextLine = XMLinput.readline()
+                if line.find('<siteModel id=\"' + discreteTraitName + '.siteModel\">') >= 0:
+                    XMLoutput.write(line[:line.find('<siteModel id=\"' + discreteTraitName + '.siteModel\">')])
+                    XMLoutput.write('\t-->\n')
+                    XMLoutput.write('\t<!-- End GLM EDIT: Swap generalSubstitutionModel with glmSubstitutionModel -->\n')  
 
-        
-                while nextLine.find('<siteModel id=\"' + discreteTraitName + '.siteModel\">') < 0:
-                    if nextLine.find('<!--') >= 0:
-                        pass
-                    else:
-                        XMLoutput.write(nextLine)
-                    nextLine = XMLinput.readline()
-                siteModelLine = nextLine
-                
-                XMLoutput.write('\t-->\n')
-                XMLoutput.write('\t<!-- End GLM EDIT: Swap generalSubstitutionModel with glmSubstitutionModel -->\n')                
-
-                writeGLMsubModel(singlePredictorsList, dataForPredictors, loopToStop, len(discreteStateNames), discreteTraitName, namesOfPredictors, directionsOfPredictors, distanceBoolean, distanceFileName, XMLoutput, totalNumberOfPredictors)
+                    writeGLMsubModel(singlePredictorsList, dataForPredictors, loopToStop, len(discreteStateNames), discreteTraitName, namesOfPredictors, directionsOfPredictors, distanceBoolean, distanceFileName, XMLoutput, totalNumberOfPredictors)
+                    writeProductStatistic(XMLoutput)
+                    XMLoutput.write(line[line.find('<siteModel id=\"' + discreteTraitName + '.siteModel\">')::])
                     
-                writeProductStatistic(XMLoutput)
-                XMLoutput.write(siteModelLine)
-                
-                replaceGeneralSubModel = True
+                    replaceGeneralSubModel = True                    
+
+                else:
+                    XMLoutput.write(line)
+                    nextLine = XMLinput.readline()
+                    while nextLine.find('<siteModel id=\"' + discreteTraitName + '.siteModel\">') < 0:
+                        if nextLine.find('<!--') >= 0:
+                            pass
+                        else:
+                            XMLoutput.write(nextLine)
+                        nextLine = XMLinput.readline()
+                    siteModelLine = nextLine
+                    
+                    XMLoutput.write('\t-->\n')
+                    XMLoutput.write('\t<!-- End GLM EDIT: Swap generalSubstitutionModel with glmSubstitutionModel -->\n')                
+
+                    writeGLMsubModel(singlePredictorsList, dataForPredictors, loopToStop, len(discreteStateNames), discreteTraitName, namesOfPredictors, directionsOfPredictors, distanceBoolean, distanceFileName, XMLoutput, totalNumberOfPredictors)
+                        
+                    writeProductStatistic(XMLoutput)
+                    XMLoutput.write(siteModelLine)
+                    
+                    replaceGeneralSubModel = True
             else:
                 XMLoutput.write(line)
 
