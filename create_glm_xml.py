@@ -778,9 +778,26 @@ def createGLM_XML(readFromXML, writeToXML, BSSVS_specified, dataForPredictors, n
     changeLogFileName      = False
     removeLogRates         = False
     removeBSSVSlog         = False
+    writeXMLspecLine       = False
 
     for line in XMLinput:
-        if addSourceCredit == False:
+        if writeXMLspecLine == False:
+            if line.find('<?xml version="1.0"') >= 0:
+                XMLoutput.write(line)
+                if (line.find('<beast>') >= 0):
+                    XMLoutput.write('\n<!-- Supplemented by GLM Parsing Code                 -->\n')
+                    XMLoutput.write('<!-- \t   Written by Dan Magee                        -->\n')
+                    XMLoutput.write('<!-- \t   Ph.D. Candidate                             -->\n')
+                    XMLoutput.write('<!-- \t   Department of Biomedical Informatics        -->\n')
+                    XMLoutput.write('<!-- \t   Biodesign Center for Environmental Security -->\n')
+                    XMLoutput.write('<!-- \t   Arizona State University                    -->\n')
+                    XMLoutput.write('<!-- \t   djmagee <<at>> asu <<dot>> edu              -->\n\n')
+                    addSourceCredit = True
+                writeXMLspecLine = True
+            else:
+                XMLoutput.write(line)
+                    
+        elif addSourceCredit == False:
             if (line.find('<beast>') >= 0):
                 XMLoutput.write('\n<!-- Supplemented by GLM Parsing Code                 -->\n')
                 XMLoutput.write('<!-- \t   Written by Dan Magee                        -->\n')
