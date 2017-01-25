@@ -840,6 +840,40 @@ def createGLM_XML(readFromXML, writeToXML, BSSVS_specified, dataForPredictors, n
                     
                     replaceGeneralSubModel = True                    
 
+                elif line.find('<!--') >= 0:
+                    j = 0
+                    while j < len(line):
+                        if line[j] == '<':
+                            if line[j:j+4] == '<!--':
+                                idx = line.find('-->',j)+3
+                                j = idx
+                            else:
+                                XMLoutput.write(line[j])
+                                j += 1
+                        else:
+                            XMLoutput.write(line[j])
+                            j += 1
+
+                    nextLine = XMLinput.readline()
+                    while nextLine.find('<siteModel id=\"' + discreteTraitName + '.siteModel\">') < 0:
+                        if nextLine.find('<!--') >= 0:
+                            pass
+                        else:
+                            XMLoutput.write(nextLine)
+                        nextLine = XMLinput.readline()
+                    siteModelLine = nextLine
+                    
+                    XMLoutput.write('\t-->\n')
+                    XMLoutput.write('\t<!-- End GLM EDIT: Swap generalSubstitutionModel with glmSubstitutionModel -->\n')                
+
+                    writeGLMsubModel(singlePredictorsList, dataForPredictors, loopToStop, len(discreteStateNames), discreteTraitName, namesOfPredictors, directionsOfPredictors, distanceBoolean, distanceFileName, XMLoutput, totalNumberOfPredictors)
+                        
+                    writeProductStatistic(XMLoutput)
+                    XMLoutput.write(siteModelLine)
+                    
+                    replaceGeneralSubModel = True
+
+                    
                 else:
                     XMLoutput.write(line)
                     nextLine = XMLinput.readline()
@@ -1164,18 +1198,18 @@ def createGLM_XML(readFromXML, writeToXML, BSSVS_specified, dataForPredictors, n
             if line.find('<column label=\"' + discreteTraitName + '.nonZeroRates') >= 0:
                 XMLoutput.write('\n\t\t\t<!-- GLM Edit: Remove nonZeroRates from log -->\n')
                 XMLoutput.write('\t\t\t<!--\n')
-                XMLoutput.write(line[line.find('<column label=\"' + discreteTraitName + '.nonZeroRates'):line.find('</column>',line.find('<column label=\"' + discreteTraitName + '.nonZeroRates'))+9]+'\n')
-                XMLoutput.write('\t\t\t-->\n')
-                XMLoutput.write('\t\t\t<!-- End GLM Edit: Remove nonZeroRates from log-->\n\n')
-                XMLoutput.write(line[line.find('</column>',line.find('<column label=\"' + discreteTraitName + '.nonZeroRates'))+9::])
-##                XMLoutput.write(line)
-##                nextLine = XMLinput.readline()
-##                while nextLine.find('</column>') < 0:
-##                    XMLoutput.write(nextLine)
-##                    nextLine = XMLinput.readline()
-##                XMLoutput.write(nextLine)
+##                XMLoutput.write(line[line.find('<column label=\"' + discreteTraitName + '.nonZeroRates'):line.find('</column>',line.find('<column label=\"' + discreteTraitName + '.nonZeroRates'))+9]+'\n')
 ##                XMLoutput.write('\t\t\t-->\n')
 ##                XMLoutput.write('\t\t\t<!-- End GLM Edit: Remove nonZeroRates from log-->\n\n')
+##                XMLoutput.write(line[line.find('</column>',line.find('<column label=\"' + discreteTraitName + '.nonZeroRates'))+9::])
+                XMLoutput.write(line)
+                nextLine = XMLinput.readline()
+                while nextLine.find('</column>') < 0:
+                    XMLoutput.write(nextLine)
+                    nextLine = XMLinput.readline()
+                XMLoutput.write(nextLine)
+                XMLoutput.write('\t\t\t-->\n')
+                XMLoutput.write('\t\t\t<!-- End GLM Edit: Remove nonZeroRates from log-->\n\n')
                 
                 removeLogNonZeroRates = True
             else:
@@ -1222,36 +1256,89 @@ def createGLM_XML(readFromXML, writeToXML, BSSVS_specified, dataForPredictors, n
                 XMLoutput.write(line)
 
         elif removeBSSVSlog == False:
-            if (line.find('<log ') >= 0) and (line.find('logEvery=') >= 0) and (line.find(discreteTraitName+'.rates.log') >= 0):
+            if (line.find('<log ') >= 0) and (line.find('logEvery=') >= 0) and (line.find(discreteTraitName+'.rates.log') >= 0):                 
                 if line.find('</log>') >= 0:
-                    logEvery = line[line.find('logEvery'):line.find('\"',line.find('logEvery')+10)]
 
-                    XMLoutput.write('\n\t\t<!-- GLM Edit: Remove BSSVS file log -->\n')
-                    XMLoutput.write('\t\t<!--\n')
-                    XMLoutput.write(line[line.find('<log '):line.find('</log>')+6]+'\n')                   
-                    XMLoutput.write('\t\t-->\n\t\t<!--End GLM Edit: Remove BSSVS file log-->\n\n')
+                    # this isn't working... move it elsewhere to deal with the comments within lines
+                    if line.find('<!--') >= 0:
+                        XMLoutput.write('\n\t\t<!-- GLM Edit: Remove BSSVS file log -->\n')
+                        XMLoutput.write('\t\t<!--\n')
+                        
+                        j = 0
+                        while j < len(line):
+                            if line[j] == '<':
+                                if line[j:j+4] == '<!--':
+                                    idx = line.find('-->',j)+3
+                                    j = idx
+                                else:
+                                    XMLoutput.write(line[j])
+                                    j += 1
+                            else:
+                                XMLoutput.write(line[j])
+                                j += 1
+                        XMLoutput.write('\t\t-->\n\t\t<!--End GLM Edit: Remove BSSVS file log-->\n\n')
+                                               
+                    else:
+                        logEvery = line[line.find('logEvery'):line.find('\"',line.find('logEvery')+10)]
+
+                        XMLoutput.write('\n\t\t<!-- GLM Edit: Remove BSSVS file log -->\n')
+                        XMLoutput.write('\t\t<!--\n')
+                        XMLoutput.write(line[line.find('<log '):line.find('</log>')+6]+'\n')                   
+                        XMLoutput.write('\t\t-->\n\t\t<!--End GLM Edit: Remove BSSVS file log-->\n\n')
 
                     addGLMfileLog(XMLoutput, discreteTraitName, logEvery, readFromXML)
-
                     removeBSSVSlog = True
+                    
                 else:
                     logEvery = line[line.find('logEvery'):line.find('\"',line.find('logEvery')+10)]
 
-                    XMLoutput.write('\n\t\t<!-- GLM Edit: Remove BSSVS file log -->\n')
-                    XMLoutput.write('\t\t<!--\n')
-                    XMLoutput.write(line)
-                    nextLine = XMLinput.readline()
+                    if line.find('<!--') >= 0:
+                        XMLoutput.write('\n\t\t<!-- GLM Edit: Remove BSSVS file log -->\n')
+                        XMLoutput.write('\t\t<!--\n')
+                        
+                        j = 0
+                        while j < len(line):
+                            if line[j] == '<':
+                                if line[j:j+4] == '<!--':
+                                    idx = line.find('-->',j)+3
+                                    j = idx
+                                else:
+                                    XMLoutput.write(line[j])
+                                    j += 1
+                            else:
+                                XMLoutput.write(line[j])
+                                j += 1
 
-                    while (nextLine.find('</log>') < 0):
-                        XMLoutput.write(nextLine)
                         nextLine = XMLinput.readline()
-                    XMLoutput.write(nextLine)
-                    
-                    XMLoutput.write('\t\t-->\n\t\t<!--End GLM Edit: Remove BSSVS file log-->\n\n')
+                        while (nextLine.find('</log>') < 0):
+                            XMLoutput.write(nextLine)
+                            nextLine = XMLinput.readline()
+                        XMLoutput.write(nextLine)
+                        
+                        XMLoutput.write('\t\t-->\n\t\t<!--End GLM Edit: Remove BSSVS file log-->\n\n')
 
-                    addGLMfileLog(XMLoutput, discreteTraitName, logEvery, readFromXML)
+                        addGLMfileLog(XMLoutput, discreteTraitName, logEvery, readFromXML)
 
-                    removeBSSVSlog = True
+                        removeBSSVSlog = True
+
+                    else:
+                        logEvery = line[line.find('logEvery'):line.find('\"',line.find('logEvery')+10)]
+
+                        XMLoutput.write('\n\t\t<!-- GLM Edit: Remove BSSVS file log -->\n')
+                        XMLoutput.write('\t\t<!--\n')
+                        XMLoutput.write(line)
+                        nextLine = XMLinput.readline()
+
+                        while (nextLine.find('</log>') < 0):
+                            XMLoutput.write(nextLine)
+                            nextLine = XMLinput.readline()
+                        XMLoutput.write(nextLine)
+                        
+                        XMLoutput.write('\t\t-->\n\t\t<!--End GLM Edit: Remove BSSVS file log-->\n\n')
+
+                        addGLMfileLog(XMLoutput, discreteTraitName, logEvery, readFromXML)
+
+                        removeBSSVSlog = True
 
             else:
                 XMLoutput.write(line)
