@@ -361,7 +361,6 @@ def verifyXMLdiscreteTrait(filename, userTraitName, rootname):
         # get the names of the discrete states for the specified discrete trait
         if child.tag == 'generalDataType':
             attribute = str(child.attrib)
-            print(attribute)
             attrib = attribute[attribute.find(' \'')+2:attribute.find('.dataType')]
             if attrib.lower() == userTraitName:
                 if attrib != userTraitName:
@@ -802,10 +801,22 @@ def createGLM_XML(readFromXML, writeToXML, BSSVS_specified, dataForPredictors, n
                 XMLoutput.write('\n\t<!-- GLM EDIT: Swap generalSubstitutionModel with glmSubstitutionModel -->\n')
                 XMLoutput.write('\t<!--\n')
                 if line.find('<siteModel id=\"' + discreteTraitName + '.siteModel\">') >= 0:
-                    XMLoutput.write(line[:line.find('<siteModel id=\"' + discreteTraitName + '.siteModel\">')])
-                    XMLoutput.write('\t-->\n')
-                    XMLoutput.write('\t<!-- End GLM EDIT: Swap generalSubstitutionModel with glmSubstitutionModel -->\n')  
 
+                    j = 0
+                    while j < line.find('<siteModel id=\"' + discreteTraitName + '.siteModel\">'):
+                        if line[j] == '<':
+                            if line[j:j+4] == '<!--':
+                                idx = line.find('-->',j)+3
+                                j = idx
+                            else:
+                                XMLoutput.write(line[j])
+                                j += 1
+                        else:
+                            XMLoutput.write(line[j])
+                            j += 1
+
+                    XMLoutput.write('\n\t-->\n')
+                    XMLoutput.write('\t<!-- End GLM EDIT: Swap generalSubstitutionModel with glmSubstitutionModel -->\n')                     
                     writeGLMsubModel(singlePredictorsList, dataForPredictors, loopToStop, len(discreteStateNames), discreteTraitName, namesOfPredictors, directionsOfPredictors, distanceBoolean, distanceFileName, XMLoutput, totalNumberOfPredictors)
                     writeProductStatistic(XMLoutput)
                     XMLoutput.write(line[line.find('<siteModel id=\"' + discreteTraitName + '.siteModel\">')::])
@@ -838,27 +849,69 @@ def createGLM_XML(readFromXML, writeToXML, BSSVS_specified, dataForPredictors, n
         elif commentOutScaleOp == False:
             
             if (line.find('<scaleOperator') >= 0):
-                
-                nextLine = XMLinput.readline()
-                if nextLine.find(discreteTraitName+'.rates') >= 0:
-                    
+                if line.find(discreteTraitName+'.rates') >= 0:
+                    XMLoutput.write(line[:line.find('<scaleOperator')]+'\n')
                     XMLoutput.write('\n\t\t<!-- GLM Edit: Remove scaleOperator for ' + discreteTraitName + ' -->\n')
                     XMLoutput.write('\t\t<!--\n')
-                    XMLoutput.write(line)
-                    XMLoutput.write(nextLine)
-
-                    nextLine = XMLinput.readline()
-                    while nextLine.find('</scaleOperator>') < 0:
-                        XMLoutput.write(nextLine)
-                        nextLine = XMLinput.readline()
-                    XMLoutput.write(nextLine)
+                    XMLoutput.write(line[line.find('<scaleOperator'):line.find('</scaleOperator>')]+'\n')
                     XMLoutput.write('\t\t-->\n')
                     XMLoutput.write('\t\t<!-- End GLM Edit: Remove scaleOperator for ' + discreteTraitName + ' -->\n')
                     commentOutScaleOp = True
 
+                    if (line.find('<bitFlipOperator') >= 0):
+                        if line.find(discreteTraitName+'.indicators') >= 0:
+                            XMLoutput.write(line[line.find('</scaleOperator>')+16:line.find('<bitFlipOperator')]+'\n')
+                            XMLoutput.write('\n\t\t<!-- GLM Edit: Remove bitFlipOperator for ' + discreteTraitName + ' -->\n')
+                            XMLoutput.write('\t\t<!--\n')
+                            XMLoutput.write(line[line.find('<bitFlipOperator'):line.find('</bitFlipOperator>')+18]+'\n')
+                            XMLoutput.write('\t\t-->\n')
+                            XMLoutput.write('\t\t<!-- End GLM Edit: Remove bitFlipOperator for ' + discreteTraitName + ' -->\n')
+                            XMLoutput.write(line[line.find('</bitFlipOperator>')+18::])
+                            commentOutBitFlipOp = True
+                        else:
+                            nextLine = XMLinput.readline()
+                            if nextLine.find(discreteTraitName+'.indicators') >= 0:
+                                
+                                XMLoutput.write('\n\t\t<!-- GLM Edit: Remove bitFlipOperator for ' + discreteTraitName + ' -->\n')
+                                XMLoutput.write('\t\t<!--\n')
+                                XMLoutput.write(line)
+                                XMLoutput.write(nextLine)
+
+                                nextLine = XMLinput.readline()
+                                while nextLine.find('</bitFlipOperator>') < 0:
+                                    XMLoutput.write(nextLine)
+                                    nextLine = XMLinput.readline()
+                                XMLoutput.write(nextLine)
+                                XMLoutput.write('\t\t-->\n')
+                                XMLoutput.write('\t\t<!-- End GLM Edit: Remove bitFlipOperator for ' + discreteTraitName + ' -->\n')
+                                addGLMoperators(XMLoutput)
+                                commentOutBitFlipOp = True
+
+                            else:
+                                XMLoutput.write(line)
+                                XMLoutput.write(nextLine) 
+
                 else:
-                    XMLoutput.write(line)
-                    XMLoutput.write(nextLine) 
+                    nextLine = XMLinput.readline()
+                    if nextLine.find(discreteTraitName+'.rates') >= 0:
+                        
+                        XMLoutput.write('\n\t\t<!-- GLM Edit: Remove scaleOperator for ' + discreteTraitName + ' -->\n')
+                        XMLoutput.write('\t\t<!--\n')
+                        XMLoutput.write(line)
+                        XMLoutput.write(nextLine)
+
+                        nextLine = XMLinput.readline()
+                        while nextLine.find('</scaleOperator>') < 0:
+                            XMLoutput.write(nextLine)
+                            nextLine = XMLinput.readline()
+                        XMLoutput.write(nextLine)
+                        XMLoutput.write('\t\t-->\n')
+                        XMLoutput.write('\t\t<!-- End GLM Edit: Remove scaleOperator for ' + discreteTraitName + ' -->\n')
+                        commentOutScaleOp = True
+
+                    else:
+                        XMLoutput.write(line)
+                        XMLoutput.write(nextLine) 
                 
             else:
                 XMLoutput.write(line)
@@ -866,88 +919,226 @@ def createGLM_XML(readFromXML, writeToXML, BSSVS_specified, dataForPredictors, n
         elif commentOutBitFlipOp == False:
             
             if (line.find('<bitFlipOperator') >= 0):
-                nextLine = XMLinput.readline()
-                if nextLine.find(discreteTraitName+'.indicators') >= 0:
-                    
+                if line.find(discreteTraitName+'.indicators') >= 0:
+                    XMLoutput.write(line[0:line.find('<bitFlipOperator')]+'\n')
                     XMLoutput.write('\n\t\t<!-- GLM Edit: Remove bitFlipOperator for ' + discreteTraitName + ' -->\n')
                     XMLoutput.write('\t\t<!--\n')
-                    XMLoutput.write(line)
-                    XMLoutput.write(nextLine)
-
-                    nextLine = XMLinput.readline()
-                    while nextLine.find('</bitFlipOperator>') < 0:
-                        XMLoutput.write(nextLine)
-                        nextLine = XMLinput.readline()
-                    XMLoutput.write(nextLine)
+                    XMLoutput.write(line[line.find('<bitFlipOperator'):line.find('</bitFlipOperator>')+18]+'\n')
                     XMLoutput.write('\t\t-->\n')
                     XMLoutput.write('\t\t<!-- End GLM Edit: Remove bitFlipOperator for ' + discreteTraitName + ' -->\n')
-                    addGLMoperators(XMLoutput)
+                    XMLoutput.write(line[line.find('</bitFlipOperator>')+18::])
                     commentOutBitFlipOp = True
 
                 else:
-                    XMLoutput.write(line)
-                    XMLoutput.write(nextLine) 
-                
+                    nextLine = XMLinput.readline()
+                    if nextLine.find(discreteTraitName+'.indicators') >= 0:
+                        
+                        XMLoutput.write('\n\t\t<!-- GLM Edit: Remove bitFlipOperator for ' + discreteTraitName + ' -->\n')
+                        XMLoutput.write('\t\t<!--\n')
+                        XMLoutput.write(line)
+                        XMLoutput.write(nextLine)
+
+                        nextLine = XMLinput.readline()
+                        while nextLine.find('</bitFlipOperator>') < 0:
+                            XMLoutput.write(nextLine)
+                            nextLine = XMLinput.readline()
+                        XMLoutput.write(nextLine)
+                        XMLoutput.write('\t\t-->\n')
+                        XMLoutput.write('\t\t<!-- End GLM Edit: Remove bitFlipOperator for ' + discreteTraitName + ' -->\n')
+                        addGLMoperators(XMLoutput)
+                        commentOutBitFlipOp = True
+
+                    else:
+                        XMLoutput.write(line)
+                        XMLoutput.write(nextLine) 
             else:
                 XMLoutput.write(line)
                 
         elif commentOutNonZeroRatesPrior == False:
             if (line.find(nonZeroPriorName) >= 0):
-                nextLine = XMLinput.readline()
-                if nextLine.find(discreteTraitName + '.nonZeroRates') >= 0:
-                    
-                    XMLoutput.write('\n\t\t\t\t<!-- GLM Edit: Remove NonZeroRates Prior for BSSVS of ' + discreteTraitName + ' -->\n')
-                    XMLoutput.write('\t\t\t\t<!--\n')
-                    XMLoutput.write(line)
-                    XMLoutput.write(nextLine)
+                if line.find(discreteTraitName + '.nonZeroRates') >= 0:
+                        XMLoutput.write('\n\t\t\t\t<!-- GLM Edit: Remove NonZeroRates Prior for BSSVS of ' + discreteTraitName + ' -->\n')
+                        XMLoutput.write('\t\t\t\t<!--\n')
+                        XMLoutput.write(line[line.find('<'+nonZeroPriorName):line.find('</'+nonZeroPriorName+'>')+len(nonZeroPriorName)+3]+'\n')
+                        XMLoutput.write('\t\t\t\t-->\n')
+                        XMLoutput.write('\t\t\t\t<!-- END GLM Edit: Remove NonZeroRates Prior for BSSVS of ' + discreteTraitName + ' -->\n')
 
-                    nextLine = XMLinput.readline()
-                    while nextLine.find('</'+nonZeroPriorName+'>') < 0:
-                            XMLoutput.write(nextLine)
-                            nextLine = XMLinput.readline()
-                    XMLoutput.write(nextLine)
-                    XMLoutput.write('\t\t\t\t-->\n')
-                    XMLoutput.write('\t\t\t\t<!-- END GLM Edit: Remove NonZeroRates Prior for BSSVS of ' + discreteTraitName + ' -->\n')
+                        if line.find('<uniformPrior') >= 0:
+                            if line.find(discreteTraitName + '.frequencies') >= 0:
+                                XMLoutput.write('\n\t\t\t\t<!-- GLM Edit: Remove uniform prior on frequencies and cached prior on rates -->\n')
+                                XMLoutput.write('\t\t\t\t<!--\n')
+                                XMLoutput.write(line[line.find('<uniformPrior'):line.find('</uniformPrior>')]+'\n')
 
-                    addBinomialLikelihood(discreteTraitName, totalNumberOfPredictors, XMLoutput)
-                    commentOutNonZeroRatesPrior = True
-                    
+                                if line.find('<cachedPrior>') >= 0:
+                                    XMLoutput.write(line[line.find('<cachedPrior'):line.find('</cachedPrior>')+14]+'\n')
+                                    XMLoutput.write('\t\t\t\t-->\n')
+                                    XMLoutput.write('\t\t\t\t<!-- End GLM Edit: Remove uniform prior on frequencies and cached prior on rates -->\n\n')
+                                    XMLoutput.write(line[line.find('</cachedPrior>')+14::]+'\n')
+                                    XMLoutput.write('\t\t\t\t<!-- GLM Edit: Add normal prior on GLM coefficients -->\n')
+                                    XMLoutput.write('\t\t\t\t<normalPrior mean=\"0\" stdev=\"2\">\n')
+                                    XMLoutput.write('\t\t\t\t\t<parameter idref=\"glmCoefficients\"/>\n')
+                                    XMLoutput.write('\t\t\t\t</normalPrior>\n')
+                                    XMLoutput.write('\t\t\t\t<!-- End GLM Edit: Add normal prior on GLM coefficients -->\n\n')
+
+                                    commentOutUniformCachedPriors = True 
+                                else:
+                                    nextLine = XMLinput.readline()
+                                    if nextLine.find(discreteTraitName + '.frequencies') >= 0:
+                                        
+                                        XMLoutput.write('\n\t\t\t\t<!-- GLM Edit: Remove uniform prior on frequencies and cached prior on rates -->\n')
+                                        XMLoutput.write('\t\t\t\t<!--\n')
+                                        XMLoutput.write(line)
+                                        XMLoutput.write(nextLine)
+                                        
+                                        nextLine = XMLinput.readline()
+                                        while nextLine.find('</cachedPrior>') < 0:
+                                            XMLoutput.write(nextLine)
+                                            nextLine = XMLinput.readline()
+                                        XMLoutput.write(nextLine)
+                                        XMLoutput.write('\t\t\t\t-->\n')
+                                        XMLoutput.write('\t\t\t\t<!-- End GLM Edit: Remove uniform prior on frequencies and cached prior on rates -->\n\n')
+
+                                        XMLoutput.write('\t\t\t\t<!-- GLM Edit: Add normal prior on GLM coefficients -->\n')
+                                        XMLoutput.write('\t\t\t\t<normalPrior mean=\"0\" stdev=\"2\">\n')
+                                        XMLoutput.write('\t\t\t\t\t<parameter idref=\"glmCoefficients\"/>\n')
+                                        XMLoutput.write('\t\t\t\t</normalPrior>\n')
+                                        XMLoutput.write('\t\t\t\t<!-- End GLM Edit: Add normal prior on GLM coefficients -->\n\n')
+
+                                        commentOutUniformCachedPriors = True                                         
+                            else:
+                                nextLine = XMLinput.readline()
+                                if nextLine.find(discreteTraitName + '.frequencies') >= 0:
+                                    
+                                    XMLoutput.write('\n\t\t\t\t<!-- GLM Edit: Remove uniform prior on frequencies and cached prior on rates -->\n')
+                                    XMLoutput.write('\t\t\t\t<!--\n')
+                                    XMLoutput.write(line)
+                                    XMLoutput.write(nextLine)
+                                    
+                                    nextLine = XMLinput.readline()
+                                    while nextLine.find('</cachedPrior>') < 0:
+                                        XMLoutput.write(nextLine)
+                                        nextLine = XMLinput.readline()
+                                    XMLoutput.write(nextLine)
+                                    XMLoutput.write('\t\t\t\t-->\n')
+                                    XMLoutput.write('\t\t\t\t<!-- End GLM Edit: Remove uniform prior on frequencies and cached prior on rates -->\n\n')
+
+                                    XMLoutput.write('\t\t\t\t<!-- GLM Edit: Add normal prior on GLM coefficients -->\n')
+                                    XMLoutput.write('\t\t\t\t<normalPrior mean=\"0\" stdev=\"2\">\n')
+                                    XMLoutput.write('\t\t\t\t\t<parameter idref=\"glmCoefficients\"/>\n')
+                                    XMLoutput.write('\t\t\t\t</normalPrior>\n')
+                                    XMLoutput.write('\t\t\t\t<!-- End GLM Edit: Add normal prior on GLM coefficients -->\n\n')
+
+                                    commentOutUniformCachedPriors = True                    
+
+                                else:
+                                    XMLoutput.write(line)
+                                    XMLoutput.write(nextLine)
+
+                        else:
+                            XMLoutput.write(line[line.find('</'+nonZeroPriorName+'>')+len(nonZeroPriorName)+3::] + '\n')
+
+                        addBinomialLikelihood(discreteTraitName, totalNumberOfPredictors, XMLoutput)
+                        commentOutNonZeroRatesPrior = True
+
                 else:
-                    XMLoutput.write(line)
-                    XMLoutput.write(nextLine)
+                    nextLine = XMLinput.readline()
+                    if nextLine.find(discreteTraitName + '.nonZeroRates') >= 0:
+                        
+                        XMLoutput.write('\n\t\t\t\t<!-- GLM Edit: Remove NonZeroRates Prior for BSSVS of ' + discreteTraitName + ' -->\n')
+                        XMLoutput.write('\t\t\t\t<!--\n')
+                        XMLoutput.write(line)
+                        XMLoutput.write(nextLine)
+
+                        nextLine = XMLinput.readline()
+                        while nextLine.find('</'+nonZeroPriorName+'>') < 0:
+                                XMLoutput.write(nextLine)
+                                nextLine = XMLinput.readline()
+                        XMLoutput.write(nextLine)
+                        XMLoutput.write('\t\t\t\t-->\n')
+                        XMLoutput.write('\t\t\t\t<!-- END GLM Edit: Remove NonZeroRates Prior for BSSVS of ' + discreteTraitName + ' -->\n')
+
+                        addBinomialLikelihood(discreteTraitName, totalNumberOfPredictors, XMLoutput)
+                        commentOutNonZeroRatesPrior = True
+                        
+                    else:
+                        XMLoutput.write(line)
+                        XMLoutput.write(nextLine)
 
             else:
                 XMLoutput.write(line)
                     
         elif commentOutUniformCachedPriors == False:
             if line.find('<uniformPrior') >= 0:
-                nextLine = XMLinput.readline()
-                if nextLine.find(discreteTraitName + '.frequencies') >= 0:
-                    
+                if line.find(discreteTraitName + '.frequencies') >= 0:
                     XMLoutput.write('\n\t\t\t\t<!-- GLM Edit: Remove uniform prior on frequencies and cached prior on rates -->\n')
                     XMLoutput.write('\t\t\t\t<!--\n')
-                    XMLoutput.write(line)
-                    XMLoutput.write(nextLine)
-                    
-                    nextLine = XMLinput.readline()
-                    while nextLine.find('</cachedPrior>') < 0:
-                        XMLoutput.write(nextLine)
+                    XMLoutput.write(line[line.find('<uniformPrior'):line.find('</uniformPrior>')]+'\n')
+
+                    if line.find('<cachedPrior>') >= 0:
+                        XMLoutput.write(line[line.find('<cachedPrior'):line.find('</cachedPrior>')+14]+'\n')
+                        XMLoutput.write('\t\t\t\t-->\n')
+                        XMLoutput.write('\t\t\t\t<!-- End GLM Edit: Remove uniform prior on frequencies and cached prior on rates -->\n\n')
+                        XMLoutput.write(line[line.find('</cachedPrior>')+14::]+'\n')
+
+                        XMLoutput.write('\t\t\t\t<!-- GLM Edit: Add normal prior on GLM coefficients -->\n')
+                        XMLoutput.write('\t\t\t\t<normalPrior mean=\"0\" stdev=\"2\">\n')
+                        XMLoutput.write('\t\t\t\t\t<parameter idref=\"glmCoefficients\"/>\n')
+                        XMLoutput.write('\t\t\t\t</normalPrior>\n')
+                        XMLoutput.write('\t\t\t\t<!-- End GLM Edit: Add normal prior on GLM coefficients -->\n\n')
+
+                        commentOutUniformCachedPriors = True 
+                    else:
                         nextLine = XMLinput.readline()
-                    XMLoutput.write(nextLine)
-                    XMLoutput.write('\t\t\t\t-->\n')
-                    XMLoutput.write('\t\t\t\t<!-- End GLM Edit: Remove uniform prior on frequencies and cached prior on rates -->\n\n')
+                        if nextLine.find(discreteTraitName + '.frequencies') >= 0:
+                            
+                            XMLoutput.write('\n\t\t\t\t<!-- GLM Edit: Remove uniform prior on frequencies and cached prior on rates -->\n')
+                            XMLoutput.write('\t\t\t\t<!--\n')
+                            XMLoutput.write(line)
+                            XMLoutput.write(nextLine)
+                            
+                            nextLine = XMLinput.readline()
+                            while nextLine.find('</cachedPrior>') < 0:
+                                XMLoutput.write(nextLine)
+                                nextLine = XMLinput.readline()
+                            XMLoutput.write(nextLine)
+                            XMLoutput.write('\t\t\t\t-->\n')
+                            XMLoutput.write('\t\t\t\t<!-- End GLM Edit: Remove uniform prior on frequencies and cached prior on rates -->\n\n')
 
-                    XMLoutput.write('\t\t\t\t<!-- GLM Edit: Add normal prior on GLM coefficients -->\n')
-                    XMLoutput.write('\t\t\t\t<normalPrior mean=\"0\" stdev=\"2\">\n')
-                    XMLoutput.write('\t\t\t\t\t<parameter idref=\"glmCoefficients\"/>\n')
-                    XMLoutput.write('\t\t\t\t</normalPrior>\n')
-                    XMLoutput.write('\t\t\t\t<!-- End GLM Edit: Add normal prior on GLM coefficients -->\n\n')
+                            XMLoutput.write('\t\t\t\t<!-- GLM Edit: Add normal prior on GLM coefficients -->\n')
+                            XMLoutput.write('\t\t\t\t<normalPrior mean=\"0\" stdev=\"2\">\n')
+                            XMLoutput.write('\t\t\t\t\t<parameter idref=\"glmCoefficients\"/>\n')
+                            XMLoutput.write('\t\t\t\t</normalPrior>\n')
+                            XMLoutput.write('\t\t\t\t<!-- End GLM Edit: Add normal prior on GLM coefficients -->\n\n')
 
-                    commentOutUniformCachedPriors = True                    
-
+                            commentOutUniformCachedPriors = True                                         
                 else:
-                    XMLoutput.write(line)
-                    XMLoutput.write(nextLine)
+                    nextLine = XMLinput.readline()
+                    if nextLine.find(discreteTraitName + '.frequencies') >= 0:
+                        
+                        XMLoutput.write('\n\t\t\t\t<!-- GLM Edit: Remove uniform prior on frequencies and cached prior on rates -->\n')
+                        XMLoutput.write('\t\t\t\t<!--\n')
+                        XMLoutput.write(line)
+                        XMLoutput.write(nextLine)
+                        
+                        nextLine = XMLinput.readline()
+                        while nextLine.find('</cachedPrior>') < 0:
+                            XMLoutput.write(nextLine)
+                            nextLine = XMLinput.readline()
+                        XMLoutput.write(nextLine)
+                        XMLoutput.write('\t\t\t\t-->\n')
+                        XMLoutput.write('\t\t\t\t<!-- End GLM Edit: Remove uniform prior on frequencies and cached prior on rates -->\n\n')
+
+                        XMLoutput.write('\t\t\t\t<!-- GLM Edit: Add normal prior on GLM coefficients -->\n')
+                        XMLoutput.write('\t\t\t\t<normalPrior mean=\"0\" stdev=\"2\">\n')
+                        XMLoutput.write('\t\t\t\t\t<parameter idref=\"glmCoefficients\"/>\n')
+                        XMLoutput.write('\t\t\t\t</normalPrior>\n')
+                        XMLoutput.write('\t\t\t\t<!-- End GLM Edit: Add normal prior on GLM coefficients -->\n\n')
+
+                        commentOutUniformCachedPriors = True                    
+
+                    else:
+                        XMLoutput.write(line)
+                        XMLoutput.write(nextLine)
 
             else:
                 XMLoutput.write(line)    
@@ -956,49 +1147,57 @@ def createGLM_XML(readFromXML, writeToXML, BSSVS_specified, dataForPredictors, n
             if line.find('<column label=\"' + discreteTraitName + '.nonZeroRates') >= 0:
                 XMLoutput.write('\n\t\t\t<!-- GLM Edit: Remove nonZeroRates from log -->\n')
                 XMLoutput.write('\t\t\t<!--\n')
-                XMLoutput.write(line)
-
-                nextLine = XMLinput.readline()
-                while nextLine.find('</column>') < 0:
-                    XMLoutput.write(nextLine)
-                    nextLine = XMLinput.readline()
-                XMLoutput.write(nextLine)
+                XMLoutput.write(line[line.find('<column label=\"' + discreteTraitName + '.nonZeroRates'):line.find('</column>',line.find('<column label=\"' + discreteTraitName + '.nonZeroRates'))+9]+'\n')
                 XMLoutput.write('\t\t\t-->\n')
                 XMLoutput.write('\t\t\t<!-- End GLM Edit: Remove nonZeroRates from log-->\n\n')
+                XMLoutput.write(line[line.find('</column>',line.find('<column label=\"' + discreteTraitName + '.nonZeroRates'))+9::])
+##                XMLoutput.write(line)
+##                nextLine = XMLinput.readline()
+##                while nextLine.find('</column>') < 0:
+##                    XMLoutput.write(nextLine)
+##                    nextLine = XMLinput.readline()
+##                XMLoutput.write(nextLine)
+##                XMLoutput.write('\t\t\t-->\n')
+##                XMLoutput.write('\t\t\t<!-- End GLM Edit: Remove nonZeroRates from log-->\n\n')
                 
                 removeLogNonZeroRates = True
-
             else:
                 XMLoutput.write(line)
 
         elif changeLogFileName == False:
-            if line.find('<log id=\"fileLog\"') >= 0:
+            #if line.find('<log id=\"fileLog\"') >= 0:
+            if line.find('<log ') >= 0 and line.find('fileName') >= 0:
                 newLine = line[:line.find('.log')] + '_GLMedits_' + discreteTraitName + line[line.find('.log')::]
                 XMLoutput.write(newLine)
                 changeLogFileName = True
-                
             else:
                 XMLoutput.write(line)
-                
+
         elif removeLogRates == False:
             if line.find('<parameter idref=\"' + discreteTraitName + '.rates\"/>') >= 0:
                 XMLoutput.write('\n\t\t\t<!-- GLM Edit: Remove BSSVS Rates, Indicators, nonZeroRates -->\n')
                 XMLoutput.write('\t\t\t<!--\n')
-                XMLoutput.write(line)
-
-                if BSSVS_specified:
-                    nextLine = XMLinput.readline()
-                    while (nextLine.find(discreteTraitName + '.indicators') >= 0) or (nextLine.find(discreteTraitName + '.nonZeroRates') >= 0):
-                        XMLoutput.write(nextLine)
-                        nextLine = XMLinput.readline()
-
-                    XMLoutput.write('\t\t\t-->\n')
-                    XMLoutput.write('\t\t\t<!-- End GLM Edit: Remove BSSVS Rates, Indicators, nonZeroRates -->\n\n')                    
-                    XMLoutput.write(nextLine)
-
+                if line.find('<parameter idref=\"' + discreteTraitName + '.indicators\"/>') >= 0 and line.find('<parameter idref=\"' + discreteTraitName + '.nonZeroRates\"/>') >= 0:
+                        XMLoutput.write(line)
+                        XMLoutput.write('\t\t\t-->\n')
+                        XMLoutput.write('\t\t\t<!-- End GLM Edit: Remove BSSVS Rates, Indicators, nonZeroRates -->\n\n')
+                        removeLogRates = True
                 else:
-                    XMLoutput.write('\t\t\t-->\n')
-                    XMLoutput.write('\t\t\t<!-- End GLM Edit: Remove BSSVS Rates, Indicators, nonZeroRates -->\n\n')
+                    XMLoutput.write(line[line.find('<parameter idref=\"' + discreteTraitName + '.rates\"/>'):line.find('<parameter idref=\"' + discreteTraitName + '.rates\"/>')+27+len(discreteTraitName)])
+
+                    if BSSVS_specified:
+                        nextLine = XMLinput.readline()
+                        while (nextLine.find(discreteTraitName + '.indicators') >= 0) or (nextLine.find(discreteTraitName + '.nonZeroRates') >= 0):
+                            XMLoutput.write(nextLine)
+                            nextLine = XMLinput.readline()
+
+                        XMLoutput.write('\t\t\t-->\n')
+                        XMLoutput.write('\t\t\t<!-- End GLM Edit: Remove BSSVS Rates, Indicators, nonZeroRates -->\n\n')                    
+                        XMLoutput.write(nextLine)
+
+                    else:
+                        XMLoutput.write('\t\t\t-->\n')
+                        XMLoutput.write('\t\t\t<!-- End GLM Edit: Remove BSSVS Rates, Indicators, nonZeroRates -->\n\n')
 
                 removeLogRates = True
 
@@ -1006,24 +1205,36 @@ def createGLM_XML(readFromXML, writeToXML, BSSVS_specified, dataForPredictors, n
                 XMLoutput.write(line)
 
         elif removeBSSVSlog == False:
-            if (line.find('<log id=') >= 0) and (line.find('logEvery=') >= 0) and (line.find(discreteTraitName+'.rates.log') >= 0):
-                logEvery = line[line.find('logEvery'):line.find('\"',line.find('logEvery')+10)]
+            if (line.find('<log ') >= 0) and (line.find('logEvery=') >= 0) and (line.find(discreteTraitName+'.rates.log') >= 0):
+                if line.find('</log>') >= 0:
+                    logEvery = line[line.find('logEvery'):line.find('\"',line.find('logEvery')+10)]
 
-                XMLoutput.write('\n\t\t<!-- GLM Edit: Remove BSSVS file log -->\n')
-                XMLoutput.write('\t\t<!--\n')
-                XMLoutput.write(line)
-                nextLine = XMLinput.readline()
+                    XMLoutput.write('\n\t\t<!-- GLM Edit: Remove BSSVS file log -->\n')
+                    XMLoutput.write('\t\t<!--\n')
+                    XMLoutput.write(line[line.find('<log '):line.find('</log>')+6]+'\n')                   
+                    XMLoutput.write('\t\t-->\n\t\t<!--End GLM Edit: Remove BSSVS file log-->\n\n')
 
-                while (nextLine.find('</log>') < 0):
-                    XMLoutput.write(nextLine)
+                    addGLMfileLog(XMLoutput, discreteTraitName, logEvery, readFromXML)
+
+                    removeBSSVSlog = True
+                else:
+                    logEvery = line[line.find('logEvery'):line.find('\"',line.find('logEvery')+10)]
+
+                    XMLoutput.write('\n\t\t<!-- GLM Edit: Remove BSSVS file log -->\n')
+                    XMLoutput.write('\t\t<!--\n')
+                    XMLoutput.write(line)
                     nextLine = XMLinput.readline()
-                XMLoutput.write(nextLine)
-                
-                XMLoutput.write('\t\t-->\n\t\t<!--End GLM Edit: Remove BSSVS file log-->\n\n')
 
-                addGLMfileLog(XMLoutput, discreteTraitName, logEvery, readFromXML)
+                    while (nextLine.find('</log>') < 0):
+                        XMLoutput.write(nextLine)
+                        nextLine = XMLinput.readline()
+                    XMLoutput.write(nextLine)
+                    
+                    XMLoutput.write('\t\t-->\n\t\t<!--End GLM Edit: Remove BSSVS file log-->\n\n')
 
-                removeBSSVSlog = True
+                    addGLMfileLog(XMLoutput, discreteTraitName, logEvery, readFromXML)
+
+                    removeBSSVSlog = True
 
             else:
                 XMLoutput.write(line)
