@@ -1707,9 +1707,10 @@ def main():
                         idx = newPreNames.index('Distance')
 
                         # if the name 'distance' exists in the predictor list and it was not maked for removal
-                        # during the directionality editing, create a matrix of great circle distances "distanceMatrix.txt"
+                        # during the directionality editing, create a matrix of great circle distances [infileName]+"_distanceMatrix.txt"
+                        distFilePath = inputXMLfilePath[:len(inputXMLfilePath)-4]+'_distanceMatrix.txt'
                         if idx >= 0 and preDirections[idx] != '** REMOVE **':
-                            calculateDistances(batchCoordsSorted, "distanceMatrix.txt")
+                            calculateDistances(batchCoordsSorted, distFilePath)
                             newPreNames.pop(idx)
                             preDirections.pop(idx)
 
@@ -1732,7 +1733,8 @@ def main():
                         for k in range(len(batchPredictorDataSorted)):
                             batchPredictorDataSorted[k].pop(idx)
 
-                    createGLM_XML(inputXMLfilePath, outputXMLfilePath, bssvs_specified, batchPredictorDataSorted, batchPreNames, preDirections, len(XMLdiscreteStateNames), includeDistance, "distanceMatrix.txt", XMLdiscreteStateNames, traitName, singlePres)
+                    #createGLM_XML(inputXMLfilePath, outputXMLfilePath, bssvs_specified, batchPredictorDataSorted, batchPreNames, preDirections, len(XMLdiscreteStateNames), includeDistance, "distanceMatrix.txt", XMLdiscreteStateNames, traitName, singlePres)
+                    createGLM_XML(inputXMLfilePath, outputXMLfilePath, bssvs_specified, batchPredictorDataSorted, batchPreNames, preDirections, len(XMLdiscreteStateNames), includeDistance, distFilePath, XMLdiscreteStateNames, traitName, singlePres)
                     print('\nDone. New XML file \"' + outputXMLfilePath + '\" created to model discrete trait \"' + traitName + '\" as a log-linear GLM has been created.')
 
 
