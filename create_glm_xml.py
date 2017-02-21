@@ -451,11 +451,12 @@ def writeCoeffValues(numpredictors, outfilename):
         txt += '1 '
     outfilename.write(txt.rstrip() + "\"/>\n")
 
-def writeOriginPredictors(count, preData, outfilename):
+def writeOriginPredictors(count, preData, outfilename, preNamesFile):
     origin_matrix = []
     for pre in range(len(preData)):
         pre_array = []
         text = "<parameter id=\"" + preData[pre][0] + "_origin\" value=\""
+        preNamesFile.write(preData[pre][0] + "_origin\n")
         for i in range(0,count):
             for j in range(i+1, count):
                 text = text + preData[pre][1][i] + ' '
@@ -469,11 +470,12 @@ def writeOriginPredictors(count, preData, outfilename):
 
     return origin_matrix        
         
-def writeDestinationPredictors(count, preData, outfilename):
+def writeDestinationPredictors(count, preData, outfilename, preNamesFile):
     destination_matrix = []
     for pre in range(len(preData)):
         pre_array = []
         text = "<parameter id=\"" + preData[pre][0] + "_destination\" value=\""
+        preNamesFile.write(preData[pre][0] + "_destination\n")
         for i in range(0,count):
             for j in range(i+1, count):
                 text = text + preData[pre][1][j] + ' '
@@ -555,7 +557,7 @@ def writeDistancePredictor(distanceFileName, outfilename):
     return distance_matrix
 
 # write the GLM substitution model that replaces the generalSubstitutionModel for the specified discrete trait
-def writeGLMsubModel(singlePreList, data, stoploop, numstates, traitname, preNames, preDirs, distBoolean, distFile, outfile, numPredictors):
+def writeGLMsubModel(singlePreList, data, stoploop, numstates, traitname, preNames, preDirs, distBoolean, distFile, outfile, numPredictors, preNamesFile):
     outfile.write('\n\t<!-- GLM Edit: Add GLM Substitution Model               -->\n')
     outfile.write('\t<glmSubstitutionModel id=\"' + traitname+'.model\">\n')
     outfile.write('\t\t<dataType idref=\"' + traitname+'.dataType\"/>\n')
@@ -610,14 +612,14 @@ def writeGLMsubModel(singlePreList, data, stoploop, numstates, traitname, preNam
                 destinations.append([preNames[j], stateData])
                 
         
-        origin_mat = writeOriginPredictors(stoploop, origins, outfile)
+        origin_mat = writeOriginPredictors(stoploop, origins, outfile, preNamesFile)
         for j in range(len(origin_mat)):
             arr = []
             for k in range(len(origin_mat[j])):
                 arr.append(float(origin_mat[j][k]))
             designMatrix.append(arr)
         
-        dest_mat = writeDestinationPredictors(stoploop, destinations, outfile)
+        dest_mat = writeDestinationPredictors(stoploop, destinations, outfile, preNamesFile)
         for j in range(len(dest_mat)):
             arr = []
             for k in range(len(dest_mat[j])):
@@ -626,6 +628,7 @@ def writeGLMsubModel(singlePreList, data, stoploop, numstates, traitname, preNam
 
         # if there was a distance predictor from the batch file, use "distanceMatrix.txt" to write those values  
         if distBoolean:
+            preNamesFile.write('Distance')
             dist_mat = writeDistancePredictor(distFile, outfile)
             arr = []
             for k in range(len(dist_mat)):
@@ -741,7 +744,7 @@ def getTotalNumberOfPredictors(preDirections, distBool, singlePreList):
 
 # the big function that creates the new XML file
 # takes in the input and output file paths as well as all other relevant data from the remainder of the program
-def createGLM_XML(readFromXML, writeToXML, BSSVS_specified, dataForPredictors, namesOfPredictors, directionsOfPredictors, loopToStop, distanceBoolean, distanceFileName, discreteStateNames, discreteTraitName, singlePredictorsList):
+def createGLM_XML(readFromXML, writeToXML, BSSVS_specified, dataForPredictors, namesOfPredictors, directionsOfPredictors, loopToStop, distanceBoolean, distanceFileName, discreteStateNames, discreteTraitName, singlePredictorsList, preNamesFile):
 
 ##    print(namesOfPredictors,len(namesOfPredictors))
 ##    print(len(dataForPredictors),len(dataForPredictors[0]))
@@ -754,6 +757,7 @@ def createGLM_XML(readFromXML, writeToXML, BSSVS_specified, dataForPredictors, n
     # open a new XML file to replace the BSSVS specificaiton with a GLM
     XMLinput = open(readFromXML,'r')
     XMLoutput = open(writeToXML,'w')
+    predictorNamesFile = open(preNamesFile,'w')
 
     # figure out exactly how many predictors there are using the directions and the distance boolean
     totalNumberOfPredictors = getTotalNumberOfPredictors(directionsOfPredictors, distanceBoolean, singlePredictorsList)
@@ -834,7 +838,7 @@ def createGLM_XML(readFromXML, writeToXML, BSSVS_specified, dataForPredictors, n
 
                     XMLoutput.write('\n\t-->\n')
                     XMLoutput.write('\t<!-- End GLM EDIT: Swap generalSubstitutionModel with glmSubstitutionModel -->\n')                     
-                    writeGLMsubModel(singlePredictorsList, dataForPredictors, loopToStop, len(discreteStateNames), discreteTraitName, namesOfPredictors, directionsOfPredictors, distanceBoolean, distanceFileName, XMLoutput, totalNumberOfPredictors)
+                    writeGLMsubModel(singlePredictorsList, dataForPredictors, loopToStop, len(discreteStateNames), discreteTraitName, namesOfPredictors, directionsOfPredictors, distanceBoolean, distanceFileName, XMLoutput, totalNumberOfPredictors,predictorNamesFile)
                     writeProductStatistic(XMLoutput)
                     XMLoutput.write(line[line.find('<siteModel id=\"' + discreteTraitName + '.siteModel\">')::])
                     
@@ -866,7 +870,7 @@ def createGLM_XML(readFromXML, writeToXML, BSSVS_specified, dataForPredictors, n
                     XMLoutput.write('\t-->\n')
                     XMLoutput.write('\t<!-- End GLM EDIT: Swap generalSubstitutionModel with glmSubstitutionModel -->\n')                
 
-                    writeGLMsubModel(singlePredictorsList, dataForPredictors, loopToStop, len(discreteStateNames), discreteTraitName, namesOfPredictors, directionsOfPredictors, distanceBoolean, distanceFileName, XMLoutput, totalNumberOfPredictors)
+                    writeGLMsubModel(singlePredictorsList, dataForPredictors, loopToStop, len(discreteStateNames), discreteTraitName, namesOfPredictors, directionsOfPredictors, distanceBoolean, distanceFileName, XMLoutput, totalNumberOfPredictors,predictorNamesFile)
                         
                     writeProductStatistic(XMLoutput)
                     XMLoutput.write(siteModelLine)
@@ -888,7 +892,7 @@ def createGLM_XML(readFromXML, writeToXML, BSSVS_specified, dataForPredictors, n
                     XMLoutput.write('\t-->\n')
                     XMLoutput.write('\t<!-- End GLM EDIT: Swap generalSubstitutionModel with glmSubstitutionModel -->\n')                
 
-                    writeGLMsubModel(singlePredictorsList, dataForPredictors, loopToStop, len(discreteStateNames), discreteTraitName, namesOfPredictors, directionsOfPredictors, distanceBoolean, distanceFileName, XMLoutput, totalNumberOfPredictors)
+                    writeGLMsubModel(singlePredictorsList, dataForPredictors, loopToStop, len(discreteStateNames), discreteTraitName, namesOfPredictors, directionsOfPredictors, distanceBoolean, distanceFileName, XMLoutput, totalNumberOfPredictors,predictorNamesFile)
                         
                     writeProductStatistic(XMLoutput)
                     XMLoutput.write(siteModelLine)
@@ -1361,6 +1365,8 @@ def createGLM_XML(readFromXML, writeToXML, BSSVS_specified, dataForPredictors, n
 
     XMLinput.close()
     XMLoutput.close()
+    predictorNamesFile.close()
+
 
 # FOR THE USER PROMPT VERSION
 ##def getXMLinputFile():
@@ -1638,6 +1644,8 @@ def main():
         
         inputXMLfilePath = userInputFile
         outputXMLfilePath = userInputFile[:len(userInputFile)-4] + '_GLMedits.xml'
+        outputPredictorFile = userInputFile[:len(userInputFile)-4] + '_predictorNames.txt'
+
 
         # check to see if the user's discrete trait is in the supplied XML
         foundDiscreteTrait = verifyXMLdiscreteTrait(inputXMLfilePath, userTraitName, root)
@@ -1734,7 +1742,7 @@ def main():
                             batchPredictorDataSorted[k].pop(idx)
 
                     #createGLM_XML(inputXMLfilePath, outputXMLfilePath, bssvs_specified, batchPredictorDataSorted, batchPreNames, preDirections, len(XMLdiscreteStateNames), includeDistance, "distanceMatrix.txt", XMLdiscreteStateNames, traitName, singlePres)
-                    createGLM_XML(inputXMLfilePath, outputXMLfilePath, bssvs_specified, batchPredictorDataSorted, batchPreNames, preDirections, len(XMLdiscreteStateNames), includeDistance, distFilePath, XMLdiscreteStateNames, traitName, singlePres)
+                    createGLM_XML(inputXMLfilePath, outputXMLfilePath, bssvs_specified, batchPredictorDataSorted, batchPreNames, preDirections, len(XMLdiscreteStateNames), includeDistance, distFilePath, XMLdiscreteStateNames, traitName, singlePres, outputPredictorFile)
                     print('\nDone. New XML file \"' + outputXMLfilePath + '\" created to model discrete trait \"' + traitName + '\" as a log-linear GLM has been created.')
 
 
