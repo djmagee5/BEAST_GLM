@@ -587,9 +587,14 @@ def writeGLMsubModel(singlePreList, data, stoploop, numstates, traitname, preNam
 
     # if there are single predictors to add, write them and append them to the designMatrix
     if len(singlePreList) > 0:
-        for j in singlePreList:
-            outfile.write(j[0])
-            designMatrix.append(j[1])
+        for j in range(len(singlePreList)):
+            outfile.write(singlePreList[j][0])
+            designMatrix.append(singlePreList[j][1])
+            if j == len(singlePreList)-1:
+                preNamesFile.write(singlePreList[j][2])
+            else:
+                preNamesFile.write(singlePreList[j][2]+'\n')
+    
 
     # if there are no predictors from a batch file, move on
     if len(preNames) == 0:
@@ -1678,7 +1683,7 @@ def main():
                 if len(uploadedPreFiles) == 1:
                     # add in createGLMXMLhere for just a single predictor file
                     singlePres = uploadedPreFiles[0]
-                    createGLM_XML(inputXMLfilePath, outputXMLfilePath, bssvs_specified, [], [], [], len(XMLdiscreteStateNames), False, "distanceMatrix.txt", XMLdiscreteStateNames, traitName, singlePres)
+                    createGLM_XML(inputXMLfilePath, outputXMLfilePath, bssvs_specified, [], [], [], len(XMLdiscreteStateNames), False, "distanceMatrix.txt", XMLdiscreteStateNames, traitName, singlePres,outputPredictorFile)
                     print('\nDone. New XML file \"' + outputXMLfilePath + '\" created to model discrete trait \"' + traitName + '\" as a log-linear GLM has been created.')
 
 
