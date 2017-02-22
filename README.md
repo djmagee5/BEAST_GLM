@@ -9,7 +9,7 @@ Prepared by: 	Daniel Magee
 		Department of Biomedical Informatics
 		djmagee@asu.edu
 		
-Last Updated: 	16 November 2016
+Last Updated: 	22 Feb 2017
 
 This document describes the usage of the Python 3.4.3 script "BSSVS_to_GLM.py".
 The general use of the script is to identify a discrete trait contained within a 
@@ -92,7 +92,7 @@ The predictor file(s) MUST be comma delimited (.csv) or tab delimited (.txt).
 
 	INDIVDIUAL FILE
 	(ii) An individual file of predictor data for a single predictor. Each of these files must be in a single directory <singlePredictorDir>
-	     These are the requirements for the files of individual predictor data:
+	     These are the requirements for the files of individual predictor data:
 	     
 	     	1. The first value in the first line should be the name of the predictor.
 	     	2. The remaining values in the first line MUST be the names of the discrete states for the discrete trait.
