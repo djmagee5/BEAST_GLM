@@ -33,7 +33,9 @@ is asymmetric. Predictor files of this type must be contained in a single direct
 in the directory individually. All predictors (whether from the batch file or individual files) will be added to a 'design matrix'.
 BEAST will not execute XML files with the GLM specification if the design matrix is not of full rank. Therefore, this program 
 will check the rank of the GLM design matrix to ensure that it is of full rank. This value will be echoed to the user along with a 
-message of whether or not the predictor data will (likely) cause a BEAST crash.
+message of whether or not the predictor data will (likely) cause a BEAST crash. The program also exports a .txt file listing the 
+predictors that were written to the new XML file. This file can be used to reference the BEAST output (via Tracer) which 
+only annotates predictors as 'coefIndicator<number>' and 'glmCoefficients<number>', respectively.
 
 
 Program Requirements
