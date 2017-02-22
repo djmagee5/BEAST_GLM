@@ -594,6 +594,8 @@ def writeGLMsubModel(singlePreList, data, stoploop, numstates, traitname, preNam
                 preNamesFile.write(singlePreList[j][2])
             else:
                 preNamesFile.write(singlePreList[j][2]+'\n')
+        if len(preNames) > 0:
+            preNamesFile.write('\n')
     
 
     # if there are no predictors from a batch file, move on
@@ -1730,6 +1732,8 @@ def main():
                         # if they elected to remove it during directional editing, set the boolean false
                         else:
                             includeDistance = False
+                    else:
+                        distFilePath = ""
 
                     predictorsToStandardize = 0
                     predictorsToRemove = []
