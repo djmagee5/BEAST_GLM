@@ -1625,6 +1625,7 @@ def main():
 
     if args == 'ERROR':
         print("Please see \"README.md\" for correct usage of this script.")
+        exit(1)
     else:
         userInputFile = args[0]
         userTraitName = args[1]
@@ -1660,6 +1661,7 @@ def main():
         # if the XML doesn't have that trait, quit
         if foundDiscreteTrait == False:
             print("ERROR: Discrete trait \""+userTraitName+"\" not found in " + inputXMLfilePath+".")
+            exit(1)
 
         # if it does, proceed
         else:
@@ -1678,6 +1680,7 @@ def main():
             # if there was an error in the uploaded predictor file(s) then print a message and kill the program
             if uploadedPreFiles == "ERROR":
                 print("New GLM-ready XML file not created. Check your predictor file(s) for the specified error.")
+                exit(1)
 
             else:
                 # only single predictor files were uploaded
@@ -1687,6 +1690,7 @@ def main():
                     singlePres = uploadedPreFiles[0]
                     createGLM_XML(inputXMLfilePath, outputXMLfilePath, bssvs_specified, [], [], [], len(XMLdiscreteStateNames), False, "distanceMatrix.txt", XMLdiscreteStateNames, traitName, singlePres,outputPredictorFile)
                     print('\nDone. New XML file \"' + outputXMLfilePath + '\" created to model discrete trait \"' + traitName + '\" as a log-linear GLM has been created.')
+                    exit(0)
 
 
                 else:
@@ -1753,6 +1757,7 @@ def main():
                     #createGLM_XML(inputXMLfilePath, outputXMLfilePath, bssvs_specified, batchPredictorDataSorted, batchPreNames, preDirections, len(XMLdiscreteStateNames), includeDistance, "distanceMatrix.txt", XMLdiscreteStateNames, traitName, singlePres)
                     createGLM_XML(inputXMLfilePath, outputXMLfilePath, bssvs_specified, batchPredictorDataSorted, batchPreNames, preDirections, len(XMLdiscreteStateNames), includeDistance, distFilePath, XMLdiscreteStateNames, traitName, singlePres, outputPredictorFile)
                     print('\nDone. New XML file \"' + outputXMLfilePath + '\" created to model discrete trait \"' + traitName + '\" as a log-linear GLM has been created.')
+                    exit(0)
 
 
 if __name__ == "__main__":
