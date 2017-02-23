@@ -635,7 +635,7 @@ def writeGLMsubModel(singlePreList, data, stoploop, numstates, traitname, preNam
 
         # if there was a distance predictor from the batch file, use "distanceMatrix.txt" to write those values  
         if distBoolean:
-            preNamesFile.write('Distance')
+            preNamesFile.write('Distance\n')
             dist_mat = writeDistancePredictor(distFile, outfile)
             arr = []
             for k in range(len(dist_mat)):
