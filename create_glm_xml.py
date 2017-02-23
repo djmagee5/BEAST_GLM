@@ -17,7 +17,7 @@ def printUsageError(scriptName):
     print("ERROR: Invalid Arguments")
     print("\tUsage: ",sys.argv[0],"xmlFileName discreteTraitName single individualFileDirectory")
     print("\t       ",sys.argv[0],"xmlFileName discreteTraitName batch batchFileName")
-    print("\t       ",sys.argv[0],"xmlFileName discreteTraitName batch batchFileName indiv individualFileDirectory")
+    print("\t       ",sys.argv[0],"xmlFileName discreteTraitName batch batchFileName single individualFileDirectory")
     print("\t       ",sys.argv[0],"xmlFileName discreteTraitName single individualFileDirectory batch batchFileName\n")
 
 def readCMDinputs():
@@ -75,7 +75,7 @@ def importPredictorMatrix(file, sep, xmlDiscreteStates):
                     if tup[k] == '0':
                         dat.append('0')
                     else:
-                        print("ERROR: Invalid value to log-transform.\t  Line: "+str(count+1)+"\tColumn: "+str(k))
+                        print("ERROR: Invalid value to log-transform.\n\tPredictor: "+preName+", Line: "+str(count+1)+", Column: "+str(k)+", Value: "+tup[k])
                         foundError = True
                     
                 else:
