@@ -4,6 +4,7 @@ import os
 import numpy
 import math
 import xml.etree.ElementTree as ET
+from datetime import datetime
 
 tb = '\t'
 
@@ -1621,6 +1622,7 @@ def main():
     # python scriptName XMLfileName discreteTraitName -indiv individualFileDirectory -batch batchFileName
     # python scriptName XMLfileName discreteTraitName -batch batchFileName
     # python scriptName XMLfileName discreteTraitName -batch batchFileName -indiv individualFileDirectory
+    startTime = datetime.now()
     args = readCMDinputs()
 
     if args == 'ERROR':
@@ -1690,6 +1692,7 @@ def main():
                     singlePres = uploadedPreFiles[0]
                     createGLM_XML(inputXMLfilePath, outputXMLfilePath, bssvs_specified, [], [], [], len(XMLdiscreteStateNames), False, "distanceMatrix.txt", XMLdiscreteStateNames, traitName, singlePres,outputPredictorFile)
                     print('\nDone. New XML file \"' + outputXMLfilePath + '\" created to model discrete trait \"' + traitName + '\" as a log-linear GLM has been created.')
+                    print('\nTime to completion: ' + str(datetime.now() - startTime))
                     exit(0)
 
 
@@ -1757,6 +1760,7 @@ def main():
                     #createGLM_XML(inputXMLfilePath, outputXMLfilePath, bssvs_specified, batchPredictorDataSorted, batchPreNames, preDirections, len(XMLdiscreteStateNames), includeDistance, "distanceMatrix.txt", XMLdiscreteStateNames, traitName, singlePres)
                     createGLM_XML(inputXMLfilePath, outputXMLfilePath, bssvs_specified, batchPredictorDataSorted, batchPreNames, preDirections, len(XMLdiscreteStateNames), includeDistance, distFilePath, XMLdiscreteStateNames, traitName, singlePres, outputPredictorFile)
                     print('\nDone. New XML file \"' + outputXMLfilePath + '\" created to model discrete trait \"' + traitName + '\" as a log-linear GLM has been created.')
+                    print('\nTime to completion: ' + str(datetime.now() - startTime))
                     exit(0)
 
 
