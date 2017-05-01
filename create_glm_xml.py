@@ -440,6 +440,7 @@ def getXMLDiscreteStateNames(filename, treename, rootname, glmTraitName):
         bssvs = True
     else:
         bssvs = False
+        nonZeroPriorName='NA'
 
     if foundGLMtraitName:
         return [discreteStateNames, discreteStateNames_raw, [bssvs,nonZeroPriorName]]
