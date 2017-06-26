@@ -682,7 +682,7 @@ def addGLMoperators(outfile):
     outfile.write('\t\t</bitFlipOperator>\n')
     outfile.write('\t\t<randomWalkOperator windowSize=\"0.5\" weight=\"1\">\n')
     outfile.write('\t\t\t<parameter idref=\"glmCoefficients\"/>\n')
-    outfile.write('\t\t</randomWalkOperator>\t')
+    outfile.write('\t\t</randomWalkOperator>\t\n')
     outfile.write('\t\t<mvnOperator scaleFactor=\"1\" weight=\"5\" formXtXInverse=\"true\">\n')
     outfile.write('\t\t\t<parameter idref=\"glmCoefficients\"/>\n')
     outfile.write('\t\t\t<varMatrix>\n')
@@ -971,6 +971,7 @@ def createGLM_XML(readFromXML, writeToXML, BSSVS_specified, dataForPredictors, n
                         XMLoutput.write(nextLine)
                         XMLoutput.write('\t\t-->\n')
                         XMLoutput.write('\t\t<!-- End GLM Edit: Remove scaleOperator for ' + discreteTraitName + ' -->\n')
+                        addGLMoperators(XMLoutput)
                         commentOutScaleOp = True
 
                     else:
